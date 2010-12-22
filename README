@@ -1,0 +1,30 @@
+Tetris 4G
+==========================
+
+About
+--------------------------
+“Tetris 4G“ is a 2D online casual game, inspired by “Tetris”.
+
+Game rules / description
+--------------------------
+The playing field consists of about a 30 x 30 grid (variable). In the middle of the field, new geometry objects (Tetris-like) spawn. The player´s task is to move them to a wall, where he has to build full lines that disappear. What distinguishes “Tetris 4G” from Tetris is the “4G”: while Tetris uses one ground and a sky, Tetris 4G has gravity at all four borders of the playing field. The nearer objects are to the center point, the greater gets the gravity to a certain direction. If an object is located in the middle and a new object spawns on top of it, the game is lost.
+
+Technical description
+--------------------------
+Gravity is defined by “gravity lines”: at each wall, the block located the furthest from the wall makes up the gravity line on it´s height, parallel to the wall.
+Forces on objects are calculated by addition of all four gravities and so is the velocity. Forces are calculated by the distances to the gravity lines
+The player can influence the movement of an object by hitting the arrow keys. This adds forces to the calculation.
+The game contains missions: e.g. “build 2 lines at wall 4 in 25 sec.”. Rewards for missions are items such as increasing the power of the arrow keys for a period of time.
+
+Programming
+--------------------------
+HTML 5, CSS
+Javascript (ECMAScript)
+jQuery (http://jquery.com/)
+Processing.js (http://processingjs.org/)
+
+License
+--------------------------
+“Tetris 4G” is licensed under the GNU GENERAL PUBLIC LICENSE http://www.gnu.org/licenses/gpl.txt
+
+Copyright © 2010 by Anton Pirogov and Felix Wiemuth
