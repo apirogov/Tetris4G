@@ -1,0 +1,85 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta name="google-site-verification" content="XdWytqaPtK1wkf0eyMlar0sXR8JuRDAL3QyZ3qnPBJI" />
+
+		<meta name="author" content="Anton Pirogov" />
+		<meta name="description" content="Tetris-like HTML5 game" />
+		<meta name="keywords" content="tetris, processingjs, game, online" />
+
+		<title>Tetris 4G</title>
+		<link rel="stylesheet" type="text/css" href="stylesheet.css" title="default">
+		<script type="text/javascript" src="./jquery-1.4.4.min.js"></script>
+		<script type="text/javascript" src="./processing-1.0.0.min.js"></script>
+		<script type="text/javascript" src="./tetris4g.js"></script>
+	</head>
+	<body>
+		<div id="menu">
+			<h1>Tetris 4G</h1>
+			<form>
+				<input id="start" type="button" value="New game" /><br />
+				<input id="showhelp" type="button" value="Show help" /><br />				
+			</form>
+
+			<div id="lastscore">
+				<strong>Your last score:</strong> <span id="lscore"></span>
+			</div>
+	
+		</div>
+
+		<div id="game">
+			<canvas id="canvas1" width="640" height="480"></canvas>
+		</div>
+		<div id="help">
+			<h2>Help</h2>
+			To be written...
+		</div>
+
+		<script type="text/javascript"><!--
+			//here come the the event handlers...
+
+			$("#start").click(function() {
+				var canvas = document.getElementById("canvas1");
+				$("#menu").css("display","none");
+				$("#game").css("display","inline");
+				$("#help").css("display","none");
+	
+				// attaching the sketch function to the canvas
+				var p = new Processing(canvas, sketch);
+			})
+
+			$("#showhelp").click(function() {
+				if ($("#help").css("display")=="none") {
+					$("#help").css("display","inline");
+					$("#showhelp").attr("value","Hide help");
+				} else {
+					$("#help").css("display","none");
+					$("#showhelp").attr("value","Show help");
+				}
+			})
+
+		--></script>
+
+		<div id="credits" style="clear:left; float:right; font-size:xx-small; text-align:right;">
+		<p>
+			<a href="http://validator.w3.org/check?uri=referer">
+				<img style="border:0;width:88px;height:31px"
+				  src="http://www.saetek.net/Images/Valid_HTML5.gif"
+				  alt="Valid HTML5" height="31" width="88" />
+			</a>
+		    <a href="http://jigsaw.w3.org/css-validator/check/referer">
+				<img style="border:0;width:88px;height:31px"
+				  src="http://jigsaw.w3.org/css-validator/images/vcss"
+				  alt="CSS is valid!" />
+			</a>
+		</p>
+
+		Copyright (C) 2010 Anton Pirogov, Felix Wiemuth
+		<br/>
+	</div>
+
+	<div id="debug"></div>
+
+	</body>
+</html>

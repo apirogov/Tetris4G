@@ -1,0 +1,17 @@
+
+body {
+	font-family: sans-serif;
+	text-align: center;
+}
+
+#game {
+	display: none;
+}
+
+#help {
+	display: none;
+}
+
+#lastscore {
+	display: none;
+}
