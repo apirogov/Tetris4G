@@ -15,3 +15,10 @@ body {
 #lastscore {
 	display: none;
 }
+
+#credits {
+	clear: left;
+	float: right;
+	font-size: xx-small;
+	text-align: right;
+}
