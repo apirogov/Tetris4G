@@ -29,6 +29,7 @@ function sketch(p) {
 	p.keyPressed = function() {
 		/* Leave game */
 		if (p.keyCode = p.ESC) {
+			p.exit();
 			$("#game").css("display","none");
 			$("#menu").css("display","inline");
 		}
