@@ -1,5 +1,29 @@
+function addClickHandlers() {
+	$("#start").click(function() {
+		$("#menu").css("display","none");
+		$("#game").css("display","inline");
+		$("#help").css("display","none");
 
-/* implement indexOf if not present */
+		// attaching the sketch function to the canvas
+		var p = new Processing($("#canvas1").get(0), sketch);
+	});
+
+	$("#showhelp").click(function() {
+		if ($("#help").css("display")=="none") {
+			$("#help").css("display","inline");
+			$("#showhelp").attr("value","Hide help");
+		} else {
+			$("#help").css("display","none");
+			$("#showhelp").attr("value","Show help");
+		}
+	});
+}
+
+
+// ready event for document -- executed when DOM is ready
+$(document).ready(addClickHandlers);
+
+// implement indexOf if not present
 if (!Array.prototype.indexOf) {
     Array.prototype.indexOf = function (obj, fromIndex) {
         if (fromIndex == null) {
