@@ -14,6 +14,8 @@
 		<script type="text/javascript" src="./processing-1.0.0.min.js"></script>
 		<script type="text/javascript" src="./tetris4g.js"></script>
 	</head>
+
+
 	<body>
 		<div id="menu">
 			<h1>Tetris 4G</h1>
@@ -25,7 +27,7 @@
 			<div id="lastscore">
 				<strong>Your last score:</strong> <span id="lscore"></span>
 			</div>
-	
+
 		</div>
 
 		<div id="game">
@@ -35,31 +37,6 @@
 			<h2>Help</h2>
 			To be written...
 		</div>
-
-		<script type="text/javascript"><!--
-			//here come the the event handlers...
-
-			$("#start").click(function() {
-				var canvas = document.getElementById("canvas1");
-				$("#menu").css("display","none");
-				$("#game").css("display","inline");
-				$("#help").css("display","none");
-	
-				// attaching the sketch function to the canvas
-				var p = new Processing(canvas, sketch);
-			})
-
-			$("#showhelp").click(function() {
-				if ($("#help").css("display")=="none") {
-					$("#help").css("display","inline");
-					$("#showhelp").attr("value","Hide help");
-				} else {
-					$("#help").css("display","none");
-					$("#showhelp").attr("value","Show help");
-				}
-			})
-
-		--></script>
 
 		<div id="credits">
 		<p>
