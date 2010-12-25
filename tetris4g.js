@@ -81,6 +81,10 @@ function sketch(p) {
 	var acttetr = new Array(); //active tetrominos -- controlled only by gravity
 	var currtetr = null; //current tetromino -- controlled by keys and gravity
 	var nexttetr = null; //next tetromino
+
+	//User visible stats
+	var score=0;
+	var rows =0;
 	
 	// position of world gravity lines
 	var gravln_left = null;
@@ -154,6 +158,22 @@ function sketch(p) {
 			}
 
 			return false;
+		}
+
+		// interface to move a single block... only moves if there is space
+		this.move = function(dx,dy) {
+			if (this.chk_touch(dx,dy)==false) {
+				this.x += dx;
+				this.y += dy;
+				return true; // moved successfully
+			}
+
+			return false; //not moved
+		}
+
+		//just for compatibility with a Tetromino
+		this.get_boundaries = function() {
+			return [this.x, this.x, this.y, this.y];
 		}
 	}
 	
@@ -326,12 +346,14 @@ function sketch(p) {
 
 		// move the tetromino (x,y - relative directions), drop on collision
 		this.move = function(x,y) {
-			if (this.chk_touch(x,y))
+			if (this.chk_touch(x,y)) {
 				addTetrToWorld();
-			else {
-				this.x += x;
-				this.y += y;
+				return false;
 			}
+
+			this.x += x;
+			this.y += y;
+			return true; //moved
 		}
 
 		/* rest of initialization */
@@ -340,25 +362,6 @@ function sketch(p) {
 			this.rotate_right();
 		}
 	}
-
-	// next -> current, generate next
-	function nextTetromino() {
-		currtetr = nexttetr;
-		nexttetr = new Tetromino(p.int(p.random(0,7)));
-	}
-
-	// blocks of the tetromino get translated & added to world blocks (relative to absolute coords)
-	function addTetrToWorld() {
-		for(var i=0; i<currtetr.blocks.length; i++) {
-			var x = currtetr.x+currtetr.blocks[i].x;
-			var y = currtetr.y+currtetr.blocks[i].y;
-			var type = currtetr.type;
-			worldblocks.push(new Block(x,y,type));
-		}
-
-		nextTetromino();
-	}
-
 
 	// Object that handles the screen text message queue
 	function MessageRenderer() {
@@ -431,8 +434,26 @@ function sketch(p) {
 	}
 	
 	// ******************** functions ********************
+	// next -> current, generate next
+	function nextTetromino() {
+		currtetr = nexttetr;
+		nexttetr = new Tetromino(p.int(p.random(0,7)));
+	}
+
+	// blocks of the tetromino get translated & added to world blocks (relative to absolute coords)
+	function addTetrToWorld() {
+		for(var i=0; i<currtetr.blocks.length; i++) {
+			var x = currtetr.x+currtetr.blocks[i].x;
+			var y = currtetr.y+currtetr.blocks[i].y;
+			var type = currtetr.type;
+			worldblocks.push(new Block(x,y,type));
+		}
+
+		nextTetromino();
+	}
 
 	// check if there is a finished row
+	// TODO: complete rewrite of this func... not simple rows, but one-color or something... and maybe not even rows...
 	function chk_rows() {
 		//Init empty world block matrix
 		var worldmatr=new Array();
@@ -448,7 +469,6 @@ function sketch(p) {
 		}
 
 		var rowcount=0;
-		var colcount=0;
 		//get rows, mark blocks for deletion
 		for (var iy=0; iy<fieldsz; iy++) {
 			var isrow = true;
@@ -474,7 +494,7 @@ function sketch(p) {
 				}
 			}
 			if (iscol) {
-				colcount++;
+				rowcount++;
 				for(var i=0; i<fieldsz; i++)
 					worldmatr[ix][i].to_remove = true;
 			}
@@ -487,8 +507,18 @@ function sketch(p) {
 			}
 		}
 
-		//TODO: scoring for that rows/columns, showing an awesome message
+		//update score/stats
+		rows += rowcount;
+		score += 10 * rowcount*rowcount;
 
+		//show message if there were rows
+		if (rowcount > 0) {
+			var colors = [LBLUE, BLUE, ORANGE, YELLOW, GREEN, PURPLE, RED];
+			var txt = "Row!";
+			if (rowcount > 1)
+				txt = rowcount.toString()+"x Row!";
+			msgrenderer.push_msg(txt,20,colors[rowcount-1],2+0.2*rowcount);
+		}
 	}
 	
 	// moves the tetromino 'tetr' according to gravity and set 'lock_direction'
@@ -537,10 +567,6 @@ function sketch(p) {
 		//load GFX
 		backgroundimg = p.requestImage("./gfx/background.png");
 
-		//DEBUG: Message testing
-		msgrenderer.push_msg("Test",20,RED,3);
-		msgrenderer.push_msg("ROW!!!",30,BLUE,2);
-
 		//Init Tetromino queue
 		nexttetr = new Tetromino(p.int(p.random(0,7)));
 		nextTetromino();
@@ -575,15 +601,19 @@ function sketch(p) {
 		}
 
 		/************* game logic ************/
-		//TODO: gravity, game over, etc...
+		//TODO: missions, game over, etc...
 		
 		//TODO: move every XXX secs --> time
 		frame_cnt++;
 		if (frame_cnt >= fpm) {
-			move_tetr(currtetr);
+			for (var i=0; i<worldblocks.length; i++) //apply gravity to world
+				move_tetr(worldblocks[i]);
+
+			move_tetr(currtetr); //apply gravity to tetromino
 			frame_cnt = 0;
 		}
-		chk_rows();
+
+		chk_rows(); //check full rows -> remove, add score etc.
 
 		
 		/*************  rendering  *************/
@@ -595,7 +625,28 @@ function sketch(p) {
 		p.fill(80);
 		p.rect(previewx-3,previewy-3,unitsz*4+6,unitsz*4+6);
 		p.strokeWeight(1);
-		//TODO: render score, etc infos
+
+		// render gravity zones
+		p.stroke(0,0,0,127);
+		p.line(0,0,480,480);
+		p.line(0,480,480,0);
+
+		// render spawn zone
+		p.noFill();
+		p.stroke(255,0,0,127);
+		p.rect(fieldszpx/2-2*unitsz,fieldszpx/2-2*unitsz,4*unitsz,4*unitsz)
+
+		// render score and stuffz
+		p.textSize(20);
+		p.textFont(txtfont);
+		p.fill(255);
+		p.text("Rows:",520,340);
+		p.fill(0);
+		p.text(rows.toString(),520,370);
+		p.fill(255);
+		p.text("Score:",520,420);
+		p.fill(0);
+		p.text(score.toString(),520,450);
 		
 		//draw world & tetrominoes
 		for(var i=0; i<worldblocks.length; i++) {
@@ -665,10 +716,6 @@ function sketch(p) {
 				currtetr.move(0,1);
 			}
 		}
-		
-
-		
-
 		
 		if (p.key == 32) { //space
 			//TODO: move tetromino DOWN in gravity direction...
