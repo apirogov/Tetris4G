@@ -71,6 +71,7 @@ function sketch(p) {
 
 	// global vars/objects
 	var fps = 30; // framerate
+	var fpm = 30; // frames per move
 	var loading = true; //bool that indicates whether the game is ready to play or not
 	var msgrenderer = null; //object that handles on screen text messages (init in setup)
 
@@ -91,6 +92,8 @@ function sketch(p) {
 	
 	//player´s control intents for next movement 0=left, 1=right, 2=up, 3=down -- can be changed at all times (time of movement counts)
 	var ctrl_intent = null;
+	
+	var frame_cnt = null;
 	
 
 
@@ -471,9 +474,17 @@ function sketch(p) {
 		var dy = 0;
 		
 		if (p.abs(x_force) > p.abs(y_force)) {
-			dx = p.int(x_force);
+			if (x_force > 0) {
+				dx = 1;
+			} else {
+				dx = -1;
+			}
 		} else if (p.abs(y_force) > p.abs(x_force)) {
-			dy = p.int(y_force);
+			if (y_force > 0) {
+				dy = 1;
+			} else {
+				dy = -1;
+			}
 		}
 		
 		tetr.move(dx, dy);
@@ -483,6 +494,7 @@ function sketch(p) {
 // ******************** processingjs ********************
 	p.setup = function() {
 		p.frameRate(fps);
+		frame_cnt = 0;
 		msgrenderer = new MessageRenderer();
 
 		//load Font
@@ -531,7 +543,11 @@ function sketch(p) {
 		//TODO: gravity, game over, etc...
 		
 		//TODO: move every XXX secs --> time
-
+		frame_cnt++;
+		if (frame_cnt >= fpm) {
+			move_tetr(currtetr);
+			frame_cnt = 0;
+		}
 		chk_rows();
 
 		
