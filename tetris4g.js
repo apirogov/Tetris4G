@@ -92,6 +92,7 @@ function sketch(p) {
 	
 	//player´s control intents for next movement 0=left, 1=right, 2=up, 3=down -- can be changed at all times (time of movement counts)
 	var ctrl_intent = null;
+	var lock_direction = null; //0=left, 1=right, 2=up, 3=down -- direction where player can´t move the tetronimo (=opposite direction of greatest gravity force)
 	
 	var frame_cnt = null;
 	
@@ -447,50 +448,32 @@ function sketch(p) {
 
 	}
 	
-	// moves the tetromino 'tetr' according to forces (gravtiy + keys)	
+	// moves the tetromino 'tetr' according to gravity and set 'lock_direction'
 	function move_tetr(tetr) {
 		var bounds = tetr.get_boundaries(); //array [left, right, top, bottom]
 		var x_force = (bounds[0] - gravln_left) - (gravln_right - bounds[1]);
 		var y_force = (bounds[2] - gravln_high) - (gravln_low - bounds[3]);
-		switch(ctrl_intent) {
-			case 0:
-				x_force -= key_force;
-				break;
-			case 1:
-				x_force += key_force;
-				break;
-			case 2:
-				y_force -= key_force;
-				break;
-			case 3:
-				y_force += key_force;
-				break;			
-			default:
-		}
-		ctrl_intent = -1;
-		
-		//relative movement in units
-		var dx = 0;
-		var dy = 0;
-		
+
 		if (p.abs(x_force) > p.abs(y_force)) {
 			if (x_force > 0) {
-				dx = 1;
+				tetr.move(1, 0);
+				lock_direction = 0;
 			} else {
-				dx = -1;
+				tetr.move(-1, 0);
+				lock_direction = 1;
 			}
 		} else if (p.abs(y_force) > p.abs(x_force)) {
 			if (y_force > 0) {
-				dy = 1;
+				tetr.move(0, 1);
+				lock_direction = 2;
 			} else {
-				dy = -1;
+				tetr.move(0, -1);
+				lock_direction = 3;
 			}
 		}
-		
-		tetr.move(dx, dy);
 	}
 
-	
+
 // ******************** processingjs ********************
 	p.setup = function() {
 		p.frameRate(fps);
@@ -522,6 +505,7 @@ function sketch(p) {
 	
 		//Init player´s control intents
 		ctrl_intent = -1;
+		lock_direction = -1;
 	}
 
 	p.draw = function() {
@@ -598,15 +582,42 @@ function sketch(p) {
 			// currtetr.move(1,0);
 		// }
 		
+		// if (p.keyCode == p.LEFT || p.key == 97) { // left & a
+			// ctrl_intent = 0;
+		// } else if (p.keyCode == p.RIGHT || p.key == 100) { // right & d
+			// ctrl_intent = 1;
+		// } else if (p.keyCode == p.UP || p.key == 119) { // up & w
+			// ctrl_intent = 2;
+		// } else if (p.keyCode == p.DOWN || p.key == 115) { // down & s
+			// ctrl_intent = 3;
+		// }
+		
 		if (p.keyCode == p.LEFT || p.key == 97) { // left & a
-			ctrl_intent = 0;
+			if (lock_direction != 0) {
+				//ctrl_intent = 0;
+				currtetr.move(-1,0);
+			}
 		} else if (p.keyCode == p.RIGHT || p.key == 100) { // right & d
-			ctrl_intent = 1;
-		} else if (p.keyCode == p.UP || p.key == 119) { // up & w
-			ctrl_intent = 2;
-		} else if (p.keyCode == p.DOWN || p.key == 115) { // down & s
-			ctrl_intent = 3;
+			if (lock_direction != 1) {
+				//ctrl_intent = 1;
+				currtetr.move(1,0);
+			}
 		}
+		if (p.keyCode == p.UP || p.key == 119) { // up & w
+			if (lock_direction != 2) {
+				//ctrl_intent = 2;
+				currtetr.move(0,-1);
+			}
+		} else if (p.keyCode == p.DOWN || p.key == 115) { // down & s
+			if (lock_direction != 3) {
+				//ctrl_intent = 3;
+				currtetr.move(0,1);
+			}
+		}
+		
+
+		
+
 		
 		if (p.key == 32) { //space
 			//TODO: move tetromino DOWN in gravity direction...
