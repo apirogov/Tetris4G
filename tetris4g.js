@@ -136,12 +136,6 @@ function sketch(p) {
 		this.x = fieldsz/2;
 		this.y = fieldsz/2;
 		
-		//boundaries //TODO SET!!!
-		this.left = 0;
-		this.right = 0;
-		this.top = 0;
-		this.bottom = 0;
-
 		//Set blocks with relative coordinates (to make rotation easier)
 		this.blocks = new Array();
 
@@ -191,7 +185,28 @@ function sketch(p) {
 		default:
 		}
 
-		
+		//returns outermost coordinates of the tetromino for gravity calculation
+		//returns: array [left, right, top, bottom]
+		this.get_boundaries = function() {
+			var left=this.blocks[0].x;
+			var right=this.blocks[0].x;
+			var upper=this.blocks[0].y; //top is a reserved word -.-
+			var bottom=this.blocks[0].y;
+
+			for (var i=0; i<this.blocks.length; i++) {
+				if (this.blocks[i].x < left)
+					left = this.blocks[i].x;
+				if (this.blocks[i].x > right)
+					right = this.blocks[i].x;
+				if (this.blocks[i].y < upper)
+					upper = this.blocks[i].y;
+				if (this.blocks[i].y > bottom)
+					bottom = this.blocks[i].y;
+			}
+
+			return [this.x+left, this.x+right, this.y+upper, this.y+bottom]; //return absolute coordinate boundaries
+		}
+
 		//draw at correct coordinates on game field
 		this.draw = function() {
 			for(var i=0; i<this.blocks.length; i++) {
@@ -256,23 +271,9 @@ function sketch(p) {
 
 		/* rest of initialization */
 		//apply random rotation
-		
-		for (var i = p.int(p.random(3)); i > 0; i--) {
+		for (var i = p.int(p.random(0,4)); i > 0; i--) {
 			this.rotate_right();
 		}
-		//TODO delete (old)
-		// switch(p.int(p.random(0,4))) {
-		// case 0:
-			// this.rotate_right();
-			// break;
-		// case 1:
-			// this.rotate_left();
-			// break;
-		// case 2:
-			// this.rotate_right();
-			// this.rotate_right();
-			// break;
-		// }
 	}
 
 	// next -> current, generate next
@@ -296,7 +297,61 @@ function sketch(p) {
 
 	// check if there is a finished row
 	function chk_rows() {
-		//TODO
+		//Init empty world block matrix
+		var worldmatr=new Array();
+		for (var i=0; i<fieldsz; i++) {
+			worldmatr[i] = new Array();
+			for (var j=0; j<fieldsz; j++)
+				worldmatr[i][j] = null;
+		}
+
+		//add references of blocks to matrix
+		for (var i=0; i<worldblocks.length; i++) {
+			worldmatr[worldblocks[i].x][worldblocks[i].y] = worldblocks[i];
+		}
+
+		var rowcount=0;
+		var colcount=0;
+		//get rows, mark blocks for deletion
+		for (var iy=0; iy<fieldsz; iy++) {
+			var isrow = true;
+			for(var i=0; i<fieldsz; i++) {
+				if (worldmatr[i][iy] == null) {
+					isrow = false;
+					break;
+				}
+			}
+			if (isrow) {
+				rowcount++;
+				for(var i=0; i<fieldsz; i++)
+					worldmatr[i][iy].to_remove = true;
+			}
+		}
+		//get cols, mark blocks for deletion
+		for (var ix=0; ix<fieldsz; ix++) {
+			var iscol = true;
+			for(var i=0; i<fieldsz; i++) {
+				if (worldmatr[ix][i] == null) {
+					iscol = false;
+					break;
+				}
+			}
+			if (iscol) {
+				colcount++;
+				for(var i=0; i<fieldsz; i++)
+					worldmatr[ix][i].to_remove = true;
+			}
+		}
+		// remove that blocks
+		for(var i=0; i<worldblocks.length; i++) {
+			if (worldblocks[i].to_remove == true) {
+				worldblocks.splice(i,1);
+				i--;
+			}
+		}
+
+		//TODO: scoring for that rows/columns, showing an awesome message
+
 	}
 
 	// Object that handles the screen text message queue
@@ -412,7 +467,9 @@ function sketch(p) {
 		}
 
 		/************* game logic ************/
-		//TODO: gravity, rows, game over, score etc...
+		//TODO: gravity, game over, etc...
+
+		chk_rows();
 
 		
 		/*************  rendering  *************/
