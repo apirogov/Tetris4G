@@ -462,6 +462,9 @@ function sketch(p) {
 				tetr.move(-1, 0);
 				lock_direction = 1;
 			}
+			if (key_force > p.abs(x_force)) {
+				lock_direction = -1;
+			}
 		} else if (p.abs(y_force) > p.abs(x_force)) {
 			if (y_force > 0) {
 				tetr.move(0, 1);
@@ -470,6 +473,11 @@ function sketch(p) {
 				tetr.move(0, -1);
 				lock_direction = 3;
 			}
+			if (key_force > p.abs(y_force)) {
+				lock_direction = -1;
+			}
+		} else {
+			lock_direction = -1; //no direction locked if equal gravity to all sides
 		}
 	}
 
