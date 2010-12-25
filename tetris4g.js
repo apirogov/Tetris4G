@@ -238,24 +238,67 @@ function sketch(p) {
 			}
 		}
 
-		//90° right turn
-		this.rotate_right = function() {
-			var rotxy_x = [[3,2,1,0],[2,1,0,-1],[1,0,-1,-2],[0,-1,-2,-3]];
-			var rotxy_y = rotxy_x.slice(0).reverse();
+		// checks for hypothetical collisions if rotated
+		this.chk_rotate_touch = function(rotxy_x, rotxy_y) {
 
+			// check hypothetical collision, if true, dont rotate...
+			for(var i=0; i<this.blocks.length; i++) {
+				var x = this.blocks[i].x;
+				var y = this.blocks[i].y;
+				var cx = this.x + rotxy_x[x+2][y+2];
+				var cy = this.y + rotxy_y[x+2][y+2];
+
+				if (this.blocks[i].chk_touch(cx,cy) == true)
+					return true; //would collide
+			}
+
+			return false; //no collisions
+		}
+
+		//performs rotation with given matrix
+		this.rotate = function(rotxy_x, rotxy_y) {
+			//perform rotation
 			for(var i=0; i<this.blocks.length; i++) {
 				var x = this.blocks[i].x;
 				var y = this.blocks[i].y;
 				this.blocks[i].x += rotxy_x[x+2][y+2];
 				this.blocks[i].y += rotxy_y[x+2][y+2];
 			}
+
+			return true; //successful rotation
 		}
 
+		//90° right turn
+		this.rotate_right = function() {
+			//rotation matrix matrix[x][y] -> x or y value to add to coordinates for the 90° right rotation
+			var rotxy_x = [[3, 2, 1, 0],[2, 1, 0,-1],[1, 0,-1,-2],[0,-1,-2,-3]];
+			var rotxy_y = [[0,-1,-2,-3],[1, 0,-1,-2],[2, 1, 0,-1],[3, 2, 1, 0]];
+
+			if (this.chk_rotate_touch(rotxy_x,rotxy_y))
+				return false;
+
+			this.rotate(rotxy_x, rotxy_y)
+			return true;
+		}
+
+		//90° left turn
 		this.rotate_left = function() {
-			//for easiness' sake
-			this.rotate_right();
-			this.rotate_right();
-			this.rotate_right();
+			var rotxy_x = [[3, 2, 1, 0],[2, 1, 0,-1],[1, 0,-1,-2],[0,-1,-2,-3]];
+			var rotxy_y = [[0,-1,-2,-3],[1, 0,-1,-2],[2, 1, 0,-1],[3, 2, 1, 0]];
+
+			// workaround - do 2 unchecked rotations, test before third (which would be the left turn)
+			// on success - rotate the third time, on failure, rotate 2 more times (original position)
+			this.rotate(rotxy_x, rotxy_y);
+			this.rotate(rotxy_x, rotxy_y);
+
+			if (this.chk_rotate_touch(rotxy_x,rotxy_y)) {
+				this.rotate(rotxy_x, rotxy_y);
+				this.rotate(rotxy_x, rotxy_y);
+				return false;
+			}
+
+			this.rotate(rotxy_x, rotxy_y);
+			return true;
 		}
 
 		// check hypothetical collision for every block of tetromino with any block of the world or the walls
