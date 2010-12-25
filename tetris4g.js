@@ -243,18 +243,23 @@ function sketch(p) {
 
 		/* rest of initialization */
 		//apply random rotation
-		switch(p.int(p.random(0,4))) {
-		case 0:
+		
+		for (var i = p.int(p.random(3)); i > 0; i--) {
 			this.rotate_right();
-			break;
-		case 1:
-			this.rotate_left();
-			break;
-		case 2:
-			this.rotate_right();
-			this.rotate_right();
-			break;
 		}
+		//TODO delete (old)
+		// switch(p.int(p.random(0,4))) {
+		// case 0:
+			// this.rotate_right();
+			// break;
+		// case 1:
+			// this.rotate_left();
+			// break;
+		// case 2:
+			// this.rotate_right();
+			// this.rotate_right();
+			// break;
+		// }
 	}
 
 	// next -> current, generate next
