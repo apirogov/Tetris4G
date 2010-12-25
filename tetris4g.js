@@ -76,6 +76,8 @@ function sketch(p) {
 	var msgrenderer = null; //object that handles on screen text messages (init in setup)
 
 	//World & Tetrominoes
+	var spawnx = fieldsz/2; //Spawn field coordinates (kinda center of it)
+	var spawny = fieldsz/2;
 	var worldblocks = new Array(); //all blocks that are already settled
 	//TODO move currtetr to acttetr when time passed...
 	var acttetr = new Array(); //active tetrominos -- controlled only by gravity
@@ -181,9 +183,9 @@ function sketch(p) {
 	function Tetromino(type) {
 		this.type = type; //number index for the forms: I,J,L,O,S,T,Z
 
-		//Grid coordinates
-		this.x = fieldsz/2;
-		this.y = fieldsz/2;
+		//Grid coordinates -> spawn point
+		this.x = spawnx;
+		this.y = spawny;
 		
 		//Set blocks with relative coordinates (to make rotation easier)
 		this.blocks = new Array();
@@ -554,6 +556,15 @@ function sketch(p) {
 		}
 	}
 
+	//Checks for collision with spawn zone -> lose
+	//TODO: not simply abort (its just for testing)
+	function chk_gameover() {
+		for(var i=0; i<worldblocks.length; i++) {
+			if (worldblocks[i].x < spawnx+2 && worldblocks[i].x >= spawnx-2
+					&& worldblocks[i].y < spawny+2 && worldblocks[i].y >= spawny-2)
+				p.exit(); //abort (GAME OVER)
+		}
+	}
 
 // ******************** processingjs ********************
 	p.setup = function() {
@@ -614,6 +625,7 @@ function sketch(p) {
 		}
 
 		chk_rows(); //check full rows -> remove, add score etc.
+		chk_gameover(); //check whether there are foreign blocks in spawn zone -> lose
 
 		
 		/*************  rendering  *************/
@@ -628,13 +640,13 @@ function sketch(p) {
 
 		// render gravity zones
 		p.stroke(0,0,0,127);
-		p.line(0,0,480,480);
-		p.line(0,480,480,0);
+		p.line(gravln_left*unitsz,gravln_high*unitsz,(gravln_right+1)*unitsz,(gravln_low+1)*unitsz);
+		p.line(gravln_left*unitsz,(gravln_low+1)*unitsz,gravln_right*unitsz,(gravln_high+1)*unitsz);
 
 		// render spawn zone
 		p.noFill();
 		p.stroke(255,0,0,127);
-		p.rect(fieldszpx/2-2*unitsz,fieldszpx/2-2*unitsz,4*unitsz,4*unitsz)
+		p.rect((spawnx-2)*unitsz,(spawny-2)*unitsz,4*unitsz,4*unitsz)
 
 		// render score and stuffz
 		p.textSize(20);
