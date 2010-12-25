@@ -63,6 +63,8 @@ function sketch(p) {
 	var RED = p.color(255, 0, 0);
 	var BLACK = p.color(0, 0, 0);
 	
+	// ******************** global vars ********************
+	
 	// required images+fonts (loaded in setup)
 	var backgroundimg = null;
 	var txtfont = null;
@@ -76,7 +78,12 @@ function sketch(p) {
 	var worldblocks = new Array(); //all blocks that are already settled
 	var currtetr = null; //current tetromino
 	var nexttetr = null; //next tetromino
-
+	
+	// position of world gravity lines
+	var gravln_left = null;
+	var gravln_right = null;
+	var gravln_high = null;
+	var gravln_low = null;
 
 
 	// ******************** classes ********************
@@ -128,6 +135,12 @@ function sketch(p) {
 		//Grid coordinates
 		this.x = fieldsz/2;
 		this.y = fieldsz/2;
+		
+		//boundaries //TODO SET!!!
+		this.left = 0;
+		this.right = 0;
+		this.top = 0;
+		this.bottom = 0;
 
 		//Set blocks with relative coordinates (to make rotation easier)
 		this.blocks = new Array();
@@ -375,6 +388,12 @@ function sketch(p) {
 		//Init Tetromino queue
 		nexttetr = new Tetromino(p.int(p.random(0,7)));
 		nextTetromino();
+		
+		//Init world gravity lines
+		gravln_left = -1;
+		gravln_right = fieldsz+1;
+		gravln_high = -1;
+		gravln_low = fieldsz+1;
 	}
 
 	p.draw = function() {
