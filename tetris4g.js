@@ -391,9 +391,9 @@ function sketch(p) {
 		
 		//Init world gravity lines
 		gravln_left = -1;
-		gravln_right = fieldsz+1;
+		gravln_right = fieldsz;
 		gravln_high = -1;
-		gravln_low = fieldsz+1;
+		gravln_low = fieldsz;
 	}
 
 	p.draw = function() {
