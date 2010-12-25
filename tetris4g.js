@@ -447,8 +447,36 @@ function sketch(p) {
 	// moves the tetromino 'tetr' according to forces (gravtiy + keys)	
 	function move_tetr(tetr) {
 		var bounds = tetr.get_boundaries(); //array [left, right, top, bottom]
+		var x_force = (bounds[0] - gravln_left) - (gravln_right - bounds[1]);
+		var y_force = (bounds[2] - gravln_high) - (gravln_low - bounds[3]);
+		switch(ctrl_intent) {
+			case 0:
+				x_force -= key_force;
+				break;
+			case 1:
+				x_force += key_force;
+				break;
+			case 2:
+				y_force -= key_force;
+				break;
+			case 3:
+				y_force += key_force;
+				break;			
+			default:
+		}
+		ctrl_intent = -1;
 		
+		//relative movement in units
+		var dx = 0;
+		var dy = 0;
 		
+		if (p.abs(x_force) > p.abs(y_force)) {
+			dx = p.int(x_force);
+		} else if (p.abs(y_force) > p.abs(x_force)) {
+			dy = p.int(y_force);
+		}
+		
+		tetr.move(dx, dy);
 	}
 
 	
@@ -502,7 +530,7 @@ function sketch(p) {
 		/************* game logic ************/
 		//TODO: gravity, game over, etc...
 		
-		//move
+		//TODO: move every XXX secs --> time
 
 		chk_rows();
 
