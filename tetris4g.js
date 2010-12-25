@@ -126,6 +126,23 @@ function sketch(p) {
 					p.rect(previewx+cx*unitsz+i+2*unitsz, previewy+cy*unitsz+i+2*unitsz, unitsz-2*i-1, unitsz-2*i-1);
 			}
 		}
+
+		// checks a hypothetical collision of that block if it was moved by x,y
+		this.chk_touch = function(dx,dy) {
+			var x = this.x+dx;
+			var y = this.y+dy;
+
+			if (x < 0 || y < 0 || x == fieldsz || y == fieldsz) //touches walls?
+				return true;
+
+			//check for collision with world
+			for (var j=0; j<worldblocks.length; j++) {
+				if (x == worldblocks[j].x && y == worldblocks[j].y)
+					return true;
+			}
+
+			return false;
+		}
 	}
 	
 	// tetris shape object (on creation spawns in center)
@@ -241,22 +258,15 @@ function sketch(p) {
 			this.rotate_right();
 		}
 
-		// check collision for every block of tetromino with any block of the world or the walls
+		// check hypothetical collision for every block of tetromino with any block of the world or the walls
 		this.chk_touch = function(dx,dy) {
 			var touch = false;
 			for(var i=0; i<this.blocks.length; i++) {
-				var x = this.x+this.blocks[i].x+dx;
-				var y = this.y+this.blocks[i].y+dy;
-	
-				if (x < 0 || y < 0 || x == fieldsz || y == fieldsz) //touches walls?
+				if (this.blocks[i].chk_touch(this.x+dx, this.y+dy))
 					return true;
-
-				//check for collision with world
-				for (var j=0; j<worldblocks.length; j++) {
-					if (x == worldblocks[j].x && y == worldblocks[j].y)
-						return true;
-				}
 			}
+
+			return false;
 		}
 
 		// move the tetromino (x,y - relative directions), drop on collision
