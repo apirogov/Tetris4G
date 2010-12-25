@@ -71,12 +71,15 @@ function sketch(p) {
 
 	// global vars/objects
 	var fps = 30; // framerate
+	var fpm = 30; // frames per move
 	var loading = true; //bool that indicates whether the game is ready to play or not
 	var msgrenderer = null; //object that handles on screen text messages (init in setup)
 
 	//World & Tetrominoes
 	var worldblocks = new Array(); //all blocks that are already settled
-	var currtetr = null; //current tetromino
+	//TODO move currtetr to acttetr when time passed...
+	var acttetr = new Array(); //active tetrominos -- controlled only by gravity
+	var currtetr = null; //current tetromino -- controlled by keys and gravity
 	var nexttetr = null; //next tetromino
 	
 	// position of world gravity lines
@@ -84,6 +87,15 @@ function sketch(p) {
 	var gravln_right = null;
 	var gravln_high = null;
 	var gravln_low = null;
+	
+	var key_force = null; //force of the control keys to move tetrominos
+	
+	//player´s control intents for next movement 0=left, 1=right, 2=up, 3=down -- can be changed at all times (time of movement counts)
+	var ctrl_intent = null;
+	var lock_direction = null; //0=left, 1=right, 2=up, 3=down -- direction where player can´t move the tetronimo (=opposite direction of greatest gravity force)
+	
+	var frame_cnt = null;
+	
 
 
 	// ******************** classes ********************
@@ -348,65 +360,6 @@ function sketch(p) {
 	}
 
 
-	// check if there is a finished row
-	function chk_rows() {
-		//Init empty world block matrix
-		var worldmatr=new Array();
-		for (var i=0; i<fieldsz; i++) {
-			worldmatr[i] = new Array();
-			for (var j=0; j<fieldsz; j++)
-				worldmatr[i][j] = null;
-		}
-
-		//add references of blocks to matrix
-		for (var i=0; i<worldblocks.length; i++) {
-			worldmatr[worldblocks[i].x][worldblocks[i].y] = worldblocks[i];
-		}
-
-		var rowcount=0;
-		var colcount=0;
-		//get rows, mark blocks for deletion
-		for (var iy=0; iy<fieldsz; iy++) {
-			var isrow = true;
-			for(var i=0; i<fieldsz; i++) {
-				if (worldmatr[i][iy] == null) {
-					isrow = false;
-					break;
-				}
-			}
-			if (isrow) {
-				rowcount++;
-				for(var i=0; i<fieldsz; i++)
-					worldmatr[i][iy].to_remove = true;
-			}
-		}
-		//get cols, mark blocks for deletion
-		for (var ix=0; ix<fieldsz; ix++) {
-			var iscol = true;
-			for(var i=0; i<fieldsz; i++) {
-				if (worldmatr[ix][i] == null) {
-					iscol = false;
-					break;
-				}
-			}
-			if (iscol) {
-				colcount++;
-				for(var i=0; i<fieldsz; i++)
-					worldmatr[ix][i].to_remove = true;
-			}
-		}
-		// remove that blocks
-		for(var i=0; i<worldblocks.length; i++) {
-			if (worldblocks[i].to_remove == true) {
-				worldblocks.splice(i,1);
-				i--;
-			}
-		}
-
-		//TODO: scoring for that rows/columns, showing an awesome message
-
-	}
-
 	// Object that handles the screen text message queue
 	function MessageRenderer() {
 		var msgqueue = new Array();
@@ -476,11 +429,106 @@ function sketch(p) {
 			}
 		}
 	}
-
 	
+	// ******************** functions ********************
+
+	// check if there is a finished row
+	function chk_rows() {
+		//Init empty world block matrix
+		var worldmatr=new Array();
+		for (var i=0; i<fieldsz; i++) {
+			worldmatr[i] = new Array();
+			for (var j=0; j<fieldsz; j++)
+				worldmatr[i][j] = null;
+		}
+
+		//add references of blocks to matrix
+		for (var i=0; i<worldblocks.length; i++) {
+			worldmatr[worldblocks[i].x][worldblocks[i].y] = worldblocks[i];
+		}
+
+		var rowcount=0;
+		var colcount=0;
+		//get rows, mark blocks for deletion
+		for (var iy=0; iy<fieldsz; iy++) {
+			var isrow = true;
+			for(var i=0; i<fieldsz; i++) {
+				if (worldmatr[i][iy] == null) {
+					isrow = false;
+					break;
+				}
+			}
+			if (isrow) {
+				rowcount++;
+				for(var i=0; i<fieldsz; i++)
+					worldmatr[i][iy].to_remove = true;
+			}
+		}
+		//get cols, mark blocks for deletion
+		for (var ix=0; ix<fieldsz; ix++) {
+			var iscol = true;
+			for(var i=0; i<fieldsz; i++) {
+				if (worldmatr[ix][i] == null) {
+					iscol = false;
+					break;
+				}
+			}
+			if (iscol) {
+				colcount++;
+				for(var i=0; i<fieldsz; i++)
+					worldmatr[ix][i].to_remove = true;
+			}
+		}
+		// remove that blocks
+		for(var i=0; i<worldblocks.length; i++) {
+			if (worldblocks[i].to_remove == true) {
+				worldblocks.splice(i,1);
+				i--;
+			}
+		}
+
+		//TODO: scoring for that rows/columns, showing an awesome message
+
+	}
+	
+	// moves the tetromino 'tetr' according to gravity and set 'lock_direction'
+	function move_tetr(tetr) {
+		var bounds = tetr.get_boundaries(); //array [left, right, top, bottom]
+		var x_force = (bounds[0] - gravln_left) - (gravln_right - bounds[1]);
+		var y_force = (bounds[2] - gravln_high) - (gravln_low - bounds[3]);
+
+		if (p.abs(x_force) > p.abs(y_force)) {
+			if (x_force > 0) {
+				tetr.move(1, 0);
+				lock_direction = 0;
+			} else {
+				tetr.move(-1, 0);
+				lock_direction = 1;
+			}
+			if (key_force > p.abs(x_force)) {
+				lock_direction = -1;
+			}
+		} else if (p.abs(y_force) > p.abs(x_force)) {
+			if (y_force > 0) {
+				tetr.move(0, 1);
+				lock_direction = 2;
+			} else {
+				tetr.move(0, -1);
+				lock_direction = 3;
+			}
+			if (key_force > p.abs(y_force)) {
+				lock_direction = -1;
+			}
+		} else {
+			lock_direction = -1; //no direction locked if equal gravity to all sides
+		}
+	}
+
+
 // ******************** processingjs ********************
 	p.setup = function() {
 		p.frameRate(fps);
+		frame_cnt = 0;
 		msgrenderer = new MessageRenderer();
 
 		//load Font
@@ -502,6 +550,13 @@ function sketch(p) {
 		gravln_right = fieldsz;
 		gravln_high = -1;
 		gravln_low = fieldsz;
+		
+		//Init key_force
+		key_force = (fieldsz/10); //TODO need to convert to int? float should do it as well regarding that the greatest force decides movement...
+	
+		//Init player´s control intents
+		ctrl_intent = -1;
+		lock_direction = -1;
 	}
 
 	p.draw = function() {
@@ -521,7 +576,13 @@ function sketch(p) {
 
 		/************* game logic ************/
 		//TODO: gravity, game over, etc...
-
+		
+		//TODO: move every XXX secs --> time
+		frame_cnt++;
+		if (frame_cnt >= fpm) {
+			move_tetr(currtetr);
+			frame_cnt = 0;
+		}
 		chk_rows();
 
 		
@@ -561,18 +622,64 @@ function sketch(p) {
 			currtetr.rotate_left();
 
 		//movement
-		if (p.keyCode == p.UP || p.key == 119) { // up & w
-			currtetr.move(0,-1);
-		} else if (p.keyCode == p.DOWN || p.key == 115) { // down & s
-			currtetr.move(0,1);
-		}
+		// if (p.keyCode == p.UP || p.key == 119) { // up & w
+			// currtetr.move(0,-1);
+		// } else if (p.keyCode == p.DOWN || p.key == 115) { // down & s
+			// currtetr.move(0,1);
+		// }
+		// if (p.keyCode == p.LEFT || p.key == 97) { // left & a
+			// currtetr.move(-1,0);
+		// } else if (p.keyCode == p.RIGHT || p.key == 100) { // right & d
+			// currtetr.move(1,0);
+		// }
+		
+		// if (p.keyCode == p.LEFT || p.key == 97) { // left & a
+			// ctrl_intent = 0;
+		// } else if (p.keyCode == p.RIGHT || p.key == 100) { // right & d
+			// ctrl_intent = 1;
+		// } else if (p.keyCode == p.UP || p.key == 119) { // up & w
+			// ctrl_intent = 2;
+		// } else if (p.keyCode == p.DOWN || p.key == 115) { // down & s
+			// ctrl_intent = 3;
+		// }
+		
 		if (p.keyCode == p.LEFT || p.key == 97) { // left & a
-			currtetr.move(-1,0);
+			if (lock_direction != 0) {
+				//ctrl_intent = 0;
+				currtetr.move(-1,0);
+			}
 		} else if (p.keyCode == p.RIGHT || p.key == 100) { // right & d
-			currtetr.move(1,0);
+			if (lock_direction != 1) {
+				//ctrl_intent = 1;
+				currtetr.move(1,0);
+			}
 		}
+		if (p.keyCode == p.UP || p.key == 119) { // up & w
+			if (lock_direction != 2) {
+				//ctrl_intent = 2;
+				currtetr.move(0,-1);
+			}
+		} else if (p.keyCode == p.DOWN || p.key == 115) { // down & s
+			if (lock_direction != 3) {
+				//ctrl_intent = 3;
+				currtetr.move(0,1);
+			}
+		}
+		
+
+		
+
+		
 		if (p.key == 32) { //space
 			//TODO: move tetromino DOWN in gravity direction...
+		}
+	}
+	
+	p.keyReleased = function() {
+		if (p.keyCode == p.LEFT || p.key == 97 || p.keyCode == p.RIGHT || p.key == 100 || p.keyCode == p.UP || p.key == 119 || p.keyCode == p.DOWN || p.key == 115) {
+			// if the player releases a control key the control intent is reset to "nothing"
+			// if another key is still pressed 'ctrl_intent' will be set again by 'p.keyPressed'
+			ctrl_intent = -1;
 		}
 	}
 }
