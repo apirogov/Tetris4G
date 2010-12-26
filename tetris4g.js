@@ -96,8 +96,6 @@ function sketch(p) {
 	
 	var key_force = null; //force of the control keys to move tetrominos
 	
-	//player´s control intents for next movement 0=left, 1=right, 2=up, 3=down -- can be changed at all times (time of movement counts)
-	var ctrl_intent = null;
 	var lock_direction = null; //0=left, 1=right, 2=up, 3=down -- direction where player can´t move the tetronimo (=opposite direction of greatest gravity force)
 	
 	var frame_cnt = null;
@@ -600,8 +598,6 @@ function sketch(p) {
 		//Init key_force
 		key_force = (fieldsz/10); //TODO need to convert to int? float should do it as well regarding that the greatest force decides movement...
 	
-		//Init player´s control intents
-		ctrl_intent = -1;
 		lock_direction = -1;
 	}
 
@@ -629,9 +625,9 @@ function sketch(p) {
 				move_tetr(worldblocks[i]);
 
 			move_tetr(currtetr); //apply gravity to tetromino
-			for (var i = 0; i < acttetr.length; i++) {
-				move_tetr(acttetr[i]);
-			}
+			// for (var i = 0; i < acttetr.length; i++) {
+				// move_tetr(acttetr[i]);
+			// }
 			frame_cnt = 0;
 		}
 
@@ -697,37 +693,25 @@ function sketch(p) {
 		
 		if (p.keyCode == p.LEFT || p.key == 97) { // left & a
 			if (lock_direction != 0) {
-				//ctrl_intent = 0;
 				currtetr.move(-1,0);
 			}
 		} else if (p.keyCode == p.RIGHT || p.key == 100) { // right & d
 			if (lock_direction != 1) {
-				//ctrl_intent = 1;
 				currtetr.move(1,0);
 			}
 		}
 		if (p.keyCode == p.UP || p.key == 119) { // up & w
 			if (lock_direction != 2) {
-				//ctrl_intent = 2;
 				currtetr.move(0,-1);
 			}
 		} else if (p.keyCode == p.DOWN || p.key == 115) { // down & s
 			if (lock_direction != 3) {
-				//ctrl_intent = 3;
 				currtetr.move(0,1);
 			}
 		}
 		
 		if (p.key == 32) { //space
 			//TODO: move tetromino DOWN in gravity direction...
-		}
-	}
-	
-	p.keyReleased = function() {
-		if (p.keyCode == p.LEFT || p.key == 97 || p.keyCode == p.RIGHT || p.key == 100 || p.keyCode == p.UP || p.key == 119 || p.keyCode == p.DOWN || p.key == 115) {
-			// if the player releases a control key the control intent is reset to "nothing"
-			// if another key is still pressed 'ctrl_intent' will be set again by 'p.keyPressed'
-			ctrl_intent = -1;
 		}
 	}
 }
