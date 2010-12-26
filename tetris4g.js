@@ -451,9 +451,10 @@ function sketch(p) {
 	// moves the tetromino 'tetr' according to gravity and set 'lock_direction'
 	function move_tetr(tetr) {
 		var bounds = tetr.get_boundaries(); //array [left, right, top, bottom]
-		var x_force = (bounds[0] - gravln_left) - (gravln_right - bounds[1]);
-		var y_force = (bounds[2] - gravln_high) - (gravln_low - bounds[3]);
-
+		var x_force = (bounds[0] - gravln_left) - (gravln_right - bounds[1]); //0=no grav <0=left >0=right
+		var y_force = (bounds[2] - gravln_high) - (gravln_low - bounds[3]); //0=no grav <0=up >0=down
+		
+		//search for greatest force and apply 'lock_direction'
 		if (p.abs(x_force) > p.abs(y_force)) {
 			if (x_force > 0) {
 				tetr.move(1, 0);
@@ -479,6 +480,14 @@ function sketch(p) {
 		} else {
 			lock_direction = -1; //no direction locked if equal gravity to all sides
 		}
+	}
+	
+	//moves a simple block according to gravity
+	function move_block(block) {
+		var x_force = (block.x - gravln_left) - (gravln_right - block.x);
+		var y_force = (block.y - gravln_high) - (gravln_low - block.y);
+		//TODO finish
+	
 	}
 
 
@@ -534,10 +543,12 @@ function sketch(p) {
 		/************* game logic ************/
 		//TODO: gravity, game over, etc...
 		
-		//TODO: move every XXX secs --> time
 		frame_cnt++;
 		if (frame_cnt >= fpm) {
 			move_tetr(currtetr);
+			for (var i = 0; i < acttetr.length; i++) {
+				move_tetr(acttetr[i]);
+			}
 			frame_cnt = 0;
 		}
 		chk_rows();
@@ -577,28 +588,6 @@ function sketch(p) {
 			currtetr.rotate_right();
 		else if (p.key == 113) // q
 			currtetr.rotate_left();
-
-		//movement
-		// if (p.keyCode == p.UP || p.key == 119) { // up & w
-			// currtetr.move(0,-1);
-		// } else if (p.keyCode == p.DOWN || p.key == 115) { // down & s
-			// currtetr.move(0,1);
-		// }
-		// if (p.keyCode == p.LEFT || p.key == 97) { // left & a
-			// currtetr.move(-1,0);
-		// } else if (p.keyCode == p.RIGHT || p.key == 100) { // right & d
-			// currtetr.move(1,0);
-		// }
-		
-		// if (p.keyCode == p.LEFT || p.key == 97) { // left & a
-			// ctrl_intent = 0;
-		// } else if (p.keyCode == p.RIGHT || p.key == 100) { // right & d
-			// ctrl_intent = 1;
-		// } else if (p.keyCode == p.UP || p.key == 119) { // up & w
-			// ctrl_intent = 2;
-		// } else if (p.keyCode == p.DOWN || p.key == 115) { // down & s
-			// ctrl_intent = 3;
-		// }
 		
 		if (p.keyCode == p.LEFT || p.key == 97) { // left & a
 			if (lock_direction != 0) {
