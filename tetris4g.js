@@ -535,6 +535,15 @@ function sketch(p) {
 		}
 	}
 	
+	//Check world blocks, set new gravity lines
+	function calibrate_gravity() {
+		var new_left=gravln_left;
+		var new_right=gravln_right;
+		var new_high=gravln_high;
+		var new_low=gravln_low;
+	
+	}
+	
 	// moves block/tetromino 'tetr' according to gravity and set 'lock_direction'
 	function apply_gravity(tetr) {
 		var bounds = tetr.get_boundaries(); //array [left, right, top, bottom]
