@@ -705,10 +705,12 @@ function sketch(p) {
 		// render score and stuffz
 		p.textSize(20);
 		p.textFont(txtfont);
-		p.fill(255);
-		p.text("Time:",520,250);
-		p.fill(0);
-		p.text(p.int(((maxtetrtime_f-(p.frameCount-currtetr.spawnframe))/fps)).toString(),520,280);
+		if (!game_over) { //show rest time if game is running
+			p.fill(255);
+			p.text("Time:",520,250);
+			p.fill(0);
+			p.text(p.int(((maxtetrtime_f-(p.frameCount-currtetr.spawnframe))/fps)).toString(),520,280);
+		}
 		p.fill(255);
 		p.text("Rows:",520,340);
 		p.fill(0);
