@@ -434,7 +434,7 @@ function sketch(p) {
 				//show on center of game field
 				p.textFont(txtfont);
 				p.textSize(currmsg[1]);
-				p.text(currmsg[0],fieldszpx/2-p.textWidth(currmsg[0])/2, fieldszpx/2-15);
+				p.text(currmsg[0],fieldszpx/2-txtfont.width(currmsg[0])*currmsg[1]/2, fieldszpx/2-15);
 			}
 		}
 	}
