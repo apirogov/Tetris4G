@@ -615,6 +615,11 @@ function sketch(p) {
 	//returns 'true' if 'block' is part of a "tower of blocks" from the LEFT
 	function check_tower(block) {
 		for (var x = block.x / unitsz; x > 0; x--) { //also checks if block is really part of wordblocks ;)
+			if (worldmatr[x] == null) {
+				msgrenderer.push_msg("FAIL!", 50, RED, 1);
+				break;
+			}
+				
 			if (worldmatr[x][block.x] == null)
 				return false;
 		}
@@ -778,8 +783,8 @@ function sketch(p) {
 		msgrenderer.render(); //render text messages
 		
 		//DEBUG
-		if (check_tower(Block(2,5, 0)) == true) {
-			msgrenderer.push_msg("GAME OVER xDD", 50, RED, 0);
+		if (check_tower(new Block(2,5,0)) == true) {
+			msgrenderer.push_msg("check_tower OK!", 30, RED, 1);
 		}
 			
 	}
