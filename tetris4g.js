@@ -465,8 +465,8 @@ function sketch(p) {
 	
 	//Calculate worldmatr from worldblocks
 	function update_worldmatr() {
+		worldmatr =new Array();
 		//Init empty world block matrix
-		var worldmatr=new Array();
 		for (var i=0; i<fieldsz; i++) {
 			worldmatr[i] = new Array();
 			for (var j=0; j<fieldsz; j++)
@@ -483,6 +483,10 @@ function sketch(p) {
 	// TODO: square detection, find bug
 	function chk_rows() {
 		var rowcount=0;
+		
+		if (worldmatr == null)
+			return false; //not possible at the moment
+		
 		//get rows, mark blocks for deletion
 		for (var iy=0; iy<fieldsz; iy++) {
 			var isrow = true;
@@ -492,7 +496,7 @@ function sketch(p) {
 					isrow = false;
 					break;
 				} else if (currcolor == null)
-					currcolor = worldmatr[i][iy];
+					currcolor = worldmatr[i][iy].type;
 			}
 			if (isrow) {
 				rowcount++;
@@ -500,6 +504,7 @@ function sketch(p) {
 					worldmatr[i][iy].to_remove = true;
 			}
 		}
+
 		//get cols, mark blocks for deletion
 		for (var ix=0; ix<fieldsz; ix++) {
 			var iscol = true;
@@ -509,7 +514,7 @@ function sketch(p) {
 					iscol = false;
 					break;
 				} else if (currcolor == null)
-					currcolor = worldmatr[ix][i];
+					currcolor = worldmatr[ix][i].type;
 			}
 			if (iscol) {
 				rowcount++;
@@ -676,7 +681,7 @@ function sketch(p) {
 				add_tetr_to_world();
 
 			update_worldmatr(); //recalculate blocks in world matrix
-			//chk_rows(); //check rows/squares -> remove, add score etc.
+			chk_rows(); //check rows/squares -> remove, add score etc.
 			chk_gameover(); //check whether there are foreign blocks in spawn zone -> lose
 		} else {
 			if (!finished) {
