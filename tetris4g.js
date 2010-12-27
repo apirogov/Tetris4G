@@ -600,18 +600,6 @@ function sketch(p) {
 			lock_direction = new_lock_direction;
 	}
 	
-	// // returns 'true' if there is a block with coords 'x' and 'y' in 'worldblocks'
-	// function find_block(x, y) {
-		// for (var i = 0; i < worldblocks.length(); i++) {
-			// if (worldblocks[i].x == x) {
-				// if (worldblocks[i].y == y)
-					// return true;
-			// }
-		// }
-		// return false;
-	// }
-	
-	
 	//returns 'true' if 'block' is part of a "tower of blocks" from the LEFT
 	function check_tower(block) {
 		for (var x = block.x / unitsz; x > 0; x--) { //also checks if block is really part of wordblocks ;)
@@ -633,7 +621,7 @@ function sketch(p) {
 		var span = 0; //distance between new gravline and "ground"
 		
 		
-		for (var i = 0; i < cand.length(); i++) {
+		for (var i = 0; i < cand.length; i++) {
 			
 		}
 	
@@ -705,6 +693,9 @@ function sketch(p) {
 		//TODO: missions etc...
 		
 		if (!game_over) {
+			update_worldmatr(); //recalculate blocks in world matrix
+			update_gravlines();
+
 			if (p.frameCount%move_time_f == 0) {
 				for (var i=0; i<worldblocks.length; i++) //apply gravity to world
 					apply_gravity(worldblocks[i]);
@@ -714,7 +705,6 @@ function sketch(p) {
 			if (p.frameCount > currtetr.spawnframe+maxtetrtime_f) //check the tetromino life state
 				add_tetr_to_world();
 
-			update_worldmatr(); //recalculate blocks in world matrix
 			chk_rows(); //check rows/squares -> remove, add score etc.
 			chk_gameover(); //check whether there are foreign blocks in spawn zone -> lose
 		} else {
