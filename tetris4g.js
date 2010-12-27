@@ -571,10 +571,17 @@ function sketch(p) {
 		} else {
 			new_lock_direction = -1; //no direction locked if equal gravity to all sides
 			//blocks on the border of gravity areas get moved randomly
-			if (p.int(p.random(0,2)))
-				tetr.move(0,y_force/p.abs(y_force));
-			else
-				tetr.move(x_force/p.abs(x_force),0);
+			if (p.int(p.random(0,2))) {
+				if (y_force!=0)
+					tetr.move(0,y_force/p.abs(y_force));
+				else
+					tetr.move(0,p.int(p.random(0,3))-1);
+			} else {
+				if (x_force!=0)
+					tetr.move(x_force/p.abs(x_force),0);
+				else
+					tetr.move(p.int(p.random(0,3))-1,0);
+			}
 		}
 
 		if (is_tetromino) //apply new lock
@@ -582,7 +589,6 @@ function sketch(p) {
 	}
 	
 	//Checks for collision with spawn zone -> lose
-	//TODO: not simply abort (its just for testing)
 	function chk_gameover() {
 		for(var i=0; i<worldblocks.length; i++) {
 			if (worldblocks[i].x < spawnx+2 && worldblocks[i].x >= spawnx-2
