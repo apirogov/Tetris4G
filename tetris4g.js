@@ -684,8 +684,10 @@ function sketch(p) {
 
 		// render gravity zones
 		p.stroke(0,0,0,127);
-		p.line(gravln_left*unitsz,gravln_high*unitsz,(gravln_right+1)*unitsz,(gravln_low+1)*unitsz);
-		p.line(gravln_left*unitsz,(gravln_low+1)*unitsz,gravln_right*unitsz,(gravln_high+1)*unitsz);
+		p.line((gravln_left+1)*unitsz,(gravln_high+1)*unitsz,
+				(gravln_right+0)*unitsz,(gravln_low+0)*unitsz);
+		p.line((gravln_left+1)*unitsz,(gravln_low+0)*unitsz,
+				(gravln_right+0)*unitsz,(gravln_high+1)*unitsz);
 		p.stroke(255,0,0,127);
 		p.line(gravln_left*unitsz, 0, gravln_left*unitsz, fieldszpx);
 		p.line(gravln_right*unitsz, 0, gravln_right*unitsz, fieldszpx);
