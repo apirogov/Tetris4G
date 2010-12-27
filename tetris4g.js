@@ -71,9 +71,14 @@ function sketch(p) {
 
 	// global vars/objects
 	var fps = 30; // framerate
-	var fpm = 30; // frames per move
 	var loading = true; //bool that indicates whether the game is ready to play or not
 	var msgrenderer = null; //object that handles on screen text messages (init in setup)
+	
+	var game_over = false; //stops game if set 'true'
+	var finished = false; // true=everything done, game can be left
+	// var game_over_frame = 0; //frame at which game stopped
+	// var finish_time = 5; //time until game is left after game over
+	// var finish_frame = 0; //frame when game should be left
 
 	//World & Tetrominoes
 	var spawnx = fieldsz/2; //Spawn field coordinates (kinda center of it)
@@ -81,7 +86,11 @@ function sketch(p) {
 	var worldblocks = new Array(); //all blocks that are already settled
 	var currtetr = null; //current tetromino -- controlled by keys and gravity
 	var nexttetr = null; //next tetromino
-	var maxtetrtime=5; //a tetromino is under control for 5 seconds only
+	//time vars -- "_f" = "time in frames"
+	var move_time = 1; //seconds -- time between movements by gravity
+	var move_time_f = move_time * fps;
+	var maxtetrtime = 5; //seconds -- time a tetromino is under control
+	var maxtetrtime_f = maxtetrtime * fps;
 
 	//User visible stats
 	var score=0;
@@ -577,10 +586,23 @@ function sketch(p) {
 	function chk_gameover() {
 		for(var i=0; i<worldblocks.length; i++) {
 			if (worldblocks[i].x < spawnx+2 && worldblocks[i].x >= spawnx-2
-					&& worldblocks[i].y < spawny+2 && worldblocks[i].y >= spawny-2)
-				p.exit(); //abort (GAME OVER)
+					&& worldblocks[i].y < spawny+2 && worldblocks[i].y >= spawny-2) {
+						game_over = true;
+			}
 		}
 	}
+	
+	// function finish() {
+		// msgrenderer.push_msg = ("GAME OVER!", 10, RED, 0);
+		// finished = true;
+	// }
+	
+	function finish() {
+		msgrenderer.push_msg("GAME OVER!", 50, RED, 0);
+		game_over = true;
+		finished = true;
+	}
+
 
 // ******************** processingjs ********************
 	p.setup = function() {
@@ -592,16 +614,19 @@ function sketch(p) {
 
 		//load GFX
 		backgroundimg = p.requestImage("./gfx/background.png");
+		
+		game_over = false;
+		finished = false;
 
 		//Init Tetromino queue
 		nexttetr = new Tetromino(p.int(p.random(0,7)));
 		next_tetromino();
 		
 		//Init world gravity lines
-		gravln_left = -1;
-		gravln_right = fieldsz;
-		gravln_high = -1;
-		gravln_low = fieldsz;
+		gravln_left = -1   +5;
+		gravln_right = fieldsz   -5;
+		gravln_high = -1   +5; //DEBUG insertion
+		gravln_low = fieldsz   -5; //DEBUG insertion
 		
 		//Init key_force
 		key_force = (fieldsz/10); //TODO need to convert to int? float should do it as well regarding that the greatest force decides movement...
@@ -627,17 +652,23 @@ function sketch(p) {
 		/************* game logic ************/
 		//TODO: missions etc...
 		
-		if (p.frameCount%fpm == 0) {
-			for (var i=0; i<worldblocks.length; i++) //apply gravity to world
-				apply_gravity(worldblocks[i]);
-			apply_gravity(currtetr);
+		if (!game_over) {
+			if (p.frameCount%move_time_f == 0) {
+				for (var i=0; i<worldblocks.length; i++) //apply gravity to world
+					apply_gravity(worldblocks[i]);
+				apply_gravity(currtetr);
+			}
+
+			if (p.frameCount > currtetr.spawnframe+maxtetrtime_f) //check the tetromino life state
+				add_tetr_to_world();
+
+			chk_rows(); //check rows/squares -> remove, add score etc.
+			chk_gameover(); //check whether there are foreign blocks in spawn zone -> lose
+		} else {
+			if (!finished) {
+				finish();
+			}
 		}
-
-		if (p.frameCount > currtetr.spawnframe+maxtetrtime*fps) //check the tetromino life state
-			add_tetr_to_world();
-
-		chk_rows(); //check rows/squares -> remove, add score etc.
-		chk_gameover(); //check whether there are foreign blocks in spawn zone -> lose
 
 		
 		/*************  rendering  *************/
@@ -655,6 +686,12 @@ function sketch(p) {
 		p.stroke(0,0,0,127);
 		p.line(gravln_left*unitsz,gravln_high*unitsz,(gravln_right+1)*unitsz,(gravln_low+1)*unitsz);
 		p.line(gravln_left*unitsz,(gravln_low+1)*unitsz,gravln_right*unitsz,(gravln_high+1)*unitsz);
+		p.stroke(255,0,0,127);
+		p.line(gravln_left*unitsz, 0, gravln_left*unitsz, fieldszpx);
+		p.line(gravln_right*unitsz, 0, gravln_right*unitsz, fieldszpx);
+		p.line(0, gravln_high*unitsz, fieldszpx, gravln_high*unitsz);
+		p.line(0, gravln_low*unitsz, fieldszpx, gravln_low*unitsz);
+		
 
 		// render spawn zone
 		p.noFill();
@@ -667,7 +704,7 @@ function sketch(p) {
 		p.fill(255);
 		p.text("Time:",520,250);
 		p.fill(0);
-		p.text(p.int(((maxtetrtime*fps-(p.frameCount-currtetr.spawnframe))/fps)).toString(),520,280);
+		p.text(p.int(((maxtetrtime_f-(p.frameCount-currtetr.spawnframe))/fps)).toString(),520,280);
 		p.fill(255);
 		p.text("Rows:",520,340);
 		p.fill(0);
@@ -694,34 +731,36 @@ function sketch(p) {
 			$("#game").css("display","none");
 			$("#menu").css("display","inline");
 		}
-
-		//rotation
-		if (p.key == 101) // e
-			currtetr.rotate_right();
-		else if (p.key == 113) // q
-			currtetr.rotate_left();
 		
-		if (p.keyCode == p.LEFT || p.key == 97) { // left & a
-			if (lock_direction != 0) {
-				currtetr.move(-1,0);
+		if (!game_over) {
+			//rotation
+			if (p.key == 101) // e
+				currtetr.rotate_right();
+			else if (p.key == 113) // q
+				currtetr.rotate_left();
+			
+			if (p.keyCode == p.LEFT || p.key == 97) { // left & a
+				if (lock_direction != 0) {
+					currtetr.move(-1,0);
+				}
+			} else if (p.keyCode == p.RIGHT || p.key == 100) { // right & d
+				if (lock_direction != 1) {
+					currtetr.move(1,0);
+				}
 			}
-		} else if (p.keyCode == p.RIGHT || p.key == 100) { // right & d
-			if (lock_direction != 1) {
-				currtetr.move(1,0);
+			if (p.keyCode == p.UP || p.key == 119) { // up & w
+				if (lock_direction != 2) {
+					currtetr.move(0,-1);
+				}
+			} else if (p.keyCode == p.DOWN || p.key == 115) { // down & s
+				if (lock_direction != 3) {
+					currtetr.move(0,1);
+				}
 			}
-		}
-		if (p.keyCode == p.UP || p.key == 119) { // up & w
-			if (lock_direction != 2) {
-				currtetr.move(0,-1);
+			
+			if (p.key == 32) { //space
+				//TODO: move tetromino DOWN in gravity direction...
 			}
-		} else if (p.keyCode == p.DOWN || p.key == 115) { // down & s
-			if (lock_direction != 3) {
-				currtetr.move(0,1);
-			}
-		}
-		
-		if (p.key == 32) { //space
-			//TODO: move tetromino DOWN in gravity direction...
 		}
 	}
 }
