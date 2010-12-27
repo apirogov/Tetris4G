@@ -112,6 +112,7 @@ function sketch(p) {
 		this.x = x;
 		this.y = y;
 		this.type = type;
+		this.last_move_done = true;
 
 		var types = [LBLUE, BLUE, ORANGE, YELLOW, GREEN, PURPLE, RED];
 		var step = 256/unitsz;
@@ -169,9 +170,11 @@ function sketch(p) {
 			if (this.chk_touch(dx,dy)==false) {
 				this.x += dx;
 				this.y += dy;
+				this.last_move_done = true;
 				return true; // moved successfully
 			}
 
+			this.last_move_done = false;
 			return false; //not moved
 		}
 
@@ -530,6 +533,15 @@ function sketch(p) {
 				txt = rowcount.toString()+"x Row!";
 			msgrenderer.push_msg(txt,20,colors[rowcount-1],2+0.2*rowcount);
 		}
+	}
+	
+	//Check world blocks, set new gravity lines
+	function calibrate_gravity() {
+		var new_left=gravln_left;
+		var new_right=gravln_right;
+		var new_high=gravln_high;
+		var new_low=gravln_low;
+	
 	}
 	
 	// moves block/tetromino 'tetr' according to gravity and set 'lock_direction'
