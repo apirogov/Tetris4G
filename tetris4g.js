@@ -112,6 +112,7 @@ function sketch(p) {
 		this.x = x;
 		this.y = y;
 		this.type = type;
+		this.last_move_done = true;
 
 		var types = [LBLUE, BLUE, ORANGE, YELLOW, GREEN, PURPLE, RED];
 		var step = 256/unitsz;
@@ -169,9 +170,11 @@ function sketch(p) {
 			if (this.chk_touch(dx,dy)==false) {
 				this.x += dx;
 				this.y += dy;
+				this.last_move_done = true;
 				return true; // moved successfully
 			}
 
+			this.last_move_done = false;
 			return false; //not moved
 		}
 
