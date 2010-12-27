@@ -84,6 +84,7 @@ function sketch(p) {
 	var spawnx = fieldsz/2; //Spawn field coordinates (kinda center of it)
 	var spawny = fieldsz/2;
 	var worldblocks = new Array(); //all blocks that are already settled
+	var worldmatr = null; //worldmatr[x][y] => block at x,y or null
 	var currtetr = null; //current tetromino -- controlled by keys and gravity
 	var nexttetr = null; //next tetromino
 	//time vars -- "_f" = "time in frames"
@@ -461,10 +462,9 @@ function sketch(p) {
 
 		next_tetromino();
 	}
-
-	// check if there is a finished row or square
-	// TODO: square detection
-	function chk_rows() {
+	
+	//Calculate worldmatr from worldblocks
+	function update_worldmatr() {
 		//Init empty world block matrix
 		var worldmatr=new Array();
 		for (var i=0; i<fieldsz; i++) {
@@ -477,7 +477,11 @@ function sketch(p) {
 		for (var i=0; i<worldblocks.length; i++) {
 			worldmatr[worldblocks[i].x][worldblocks[i].y] = worldblocks[i];
 		}
+	}
 
+	// check if there is a finished row or square
+	// TODO: square detection, find bug
+	function chk_rows() {
 		var rowcount=0;
 		//get rows, mark blocks for deletion
 		for (var iy=0; iy<fieldsz; iy++) {
@@ -690,7 +694,8 @@ function sketch(p) {
 			if (p.frameCount > currtetr.spawnframe+maxtetrtime_f) //check the tetromino life state
 				add_tetr_to_world();
 
-			chk_rows(); //check rows/squares -> remove, add score etc.
+			update_worldmatr(); //recalculate blocks in world matrix
+			//chk_rows(); //check rows/squares -> remove, add score etc.
 			chk_gameover(); //check whether there are foreign blocks in spawn zone -> lose
 		} else {
 			if (!finished) {
