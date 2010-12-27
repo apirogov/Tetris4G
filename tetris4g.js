@@ -466,7 +466,7 @@ function sketch(p) {
 	//Calculate worldmatr from worldblocks
 	function update_worldmatr() {
 		//Init empty world block matrix
-		var worldmatr=new Array();
+		worldmatr = new Array();
 		for (var i=0; i<fieldsz; i++) {
 			worldmatr[i] = new Array();
 			for (var j=0; j<fieldsz; j++)
@@ -606,14 +606,24 @@ function sketch(p) {
 		// return false;
 	// }
 	
+	
+	//returns 'true' if 'block' is part of a "tower of blocks" from the LEFT
+	function check_tower(block) {
+		for (var x = block.x / unitsz; x > 0; x--) { //also checks if block is really part of wordblocks ;)
+			if (worldmatr[x][block.x] == null)
+				return false;
+		}
+		return true;
+	}
+	
 	// sets all 'gravln_[...]' according to constitution of 'worldblocks'
 	//TODO: turn all world blocks anti clock wise --> same algo can be applied to get all gravlines
 	function update_gravlines() {
-		var candidates = new Array();
+		var cand = new Array(); //candidates
 		var span = 0; //distance between new gravline and "ground"
 		
 		
-		for (var i = 0; i < candidates.length(); i++) {
+		for (var i = 0; i < cand.length(); i++) {
 			
 		}
 	
@@ -761,6 +771,12 @@ function sketch(p) {
 		nexttetr.draw_preview();
 
 		msgrenderer.render(); //render text messages
+		
+		//DEBUG
+		if (check_tower(Block(2,5, 0)) == true) {
+			msgrenderer.push_msg("GAME OVER xDD", 50, RED, 0);
+		}
+			
 	}
 
 	p.keyPressed = function() {
