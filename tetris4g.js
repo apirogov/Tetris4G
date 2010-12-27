@@ -588,6 +588,29 @@ function sketch(p) {
 			lock_direction = new_lock_direction;
 	}
 	
+	// returns 'true' if there is a block with coords 'x' and 'y' in 'worldblocks'
+	function find_block(x, y) {
+		for (var i = 0; i < worldblocks.length(); i++) {
+			if (worldblocks[i].x == x) {
+				if (worldblocks[i].y == y)
+					return true;
+			}
+		}
+		return false;
+	}
+	
+	// sets all 'gravln_[...]' according to constitution of 'worldblocks'
+	//TDODO: turn all world blocks anti clock wise --> same algo can be applied to get all gravlines
+	function update_gravlines() {
+		var candidates = new Array();
+		
+		
+		for (var i = 0; i < candidates.length(); i++) {
+			
+		}
+	
+	}
+	
 	//Checks for collision with spawn zone -> lose
 	function chk_gameover() {
 		for(var i=0; i<worldblocks.length; i++) {
@@ -597,11 +620,6 @@ function sketch(p) {
 			}
 		}
 	}
-	
-	// function finish() {
-		// msgrenderer.push_msg = ("GAME OVER!", 10, RED, 0);
-		// finished = true;
-	// }
 	
 	function finish() {
 		msgrenderer.push_msg("GAME OVER!", 50, RED, 0);
