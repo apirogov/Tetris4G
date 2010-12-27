@@ -683,16 +683,18 @@ function sketch(p) {
 		p.strokeWeight(1);
 
 		// render gravity zones
+		//Diagonal lines
 		p.stroke(0,0,0,127);
-		p.line((gravln_left+1)*unitsz,(gravln_high+1)*unitsz,
-				(gravln_right+0)*unitsz,(gravln_low+0)*unitsz);
-		p.line((gravln_left+1)*unitsz,(gravln_low+0)*unitsz,
-				(gravln_right+0)*unitsz,(gravln_high+1)*unitsz);
+		p.line(gravln_left*unitsz+unitsz/2,gravln_high*unitsz+unitsz/2,
+				gravln_right*unitsz+unitsz/2,gravln_low*unitsz+unitsz/2);
+		p.line(gravln_left*unitsz+unitsz/2,gravln_low*unitsz+unitsz/2,
+				gravln_right*unitsz+unitsz/2,gravln_high*unitsz+unitsz/2);
+		//Gravity force lines
 		p.stroke(255,0,0,127);
-		p.line(gravln_left*unitsz, 0, gravln_left*unitsz, fieldszpx);
-		p.line(gravln_right*unitsz, 0, gravln_right*unitsz, fieldszpx);
-		p.line(0, gravln_high*unitsz, fieldszpx, gravln_high*unitsz);
-		p.line(0, gravln_low*unitsz, fieldszpx, gravln_low*unitsz);
+		p.line(gravln_left*unitsz+unitsz/2, 0, gravln_left*unitsz+unitsz/2, fieldszpx);
+		p.line(gravln_right*unitsz+unitsz/2, 0, gravln_right*unitsz+unitsz/2, fieldszpx);
+		p.line(0, gravln_high*unitsz+unitsz/2, fieldszpx, gravln_high*unitsz+unitsz/2);
+		p.line(0, gravln_low*unitsz+unitsz/2, fieldszpx, gravln_low*unitsz+unitsz/2);
 		
 
 		// render spawn zone
