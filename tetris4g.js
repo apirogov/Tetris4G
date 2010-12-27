@@ -7,6 +7,7 @@ function addClickHandlers() {
 
 		// attaching the sketch function to the canvas
 		var p = new Processing($("#canvas1").get(0), sketch);
+		document.getElementById("soundtrack").play();
 	});
 
 	$("#showhelp").click(function() {
@@ -76,6 +77,7 @@ function sketch(p) {
 	
 	var game_over = false; //stops game if set 'true'
 	var finished = false; // true=everything done, game can be left
+	var musicon = true; // true = play soundtrack in loop
 	// var game_over_frame = 0; //frame at which game stopped
 	// var finish_time = 5; //time until game is left after game over
 	// var finish_frame = 0; //frame when game should be left
@@ -602,13 +604,13 @@ function sketch(p) {
 	
 	//returns 'true' if 'block' is part of a "tower of blocks" from the LEFT
 	function check_tower(block) {
-		for (var x = block.x / unitsz; x > 0; x--) { //also checks if block is really part of wordblocks ;)
+		for (var x = block.x; x > 0; x--) { //also checks if block is really part of wordblocks ;)
 			if (worldmatr[x] == null) {
 				msgrenderer.push_msg("FAIL!", 50, RED, 1);
 				break;
 			}
 				
-			if (worldmatr[x][block.x] == null)
+			if (worldmatr[x][block.y] == null)
 				return false;
 		}
 		return true;
@@ -776,15 +778,23 @@ function sketch(p) {
 		if (check_tower(new Block(2,5,0)) == true) {
 			msgrenderer.push_msg("check_tower OK!", 30, RED, 1);
 		}
-			
 	}
 
 	p.keyPressed = function() {
 		// Leave (abort) game
 		if (p.keyCode == p.ESC) {
 			p.exit();
+			document.getElementById("soundtrack").pause();
 			$("#game").css("display","none");
 			$("#menu").css("display","inline");
+		}
+		
+		if (p.key == 109) { //m -> toggle music
+			if (musicon)
+				document.getElementById("soundtrack").pause();
+			 else
+				document.getElementById("soundtrack").play();
+			 musicon = !musicon;
 		}
 		
 		if (!game_over) {
