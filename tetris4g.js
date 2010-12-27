@@ -591,21 +591,22 @@ function sketch(p) {
 			lock_direction = new_lock_direction;
 	}
 	
-	// returns 'true' if there is a block with coords 'x' and 'y' in 'worldblocks'
-	function find_block(x, y) {
-		for (var i = 0; i < worldblocks.length(); i++) {
-			if (worldblocks[i].x == x) {
-				if (worldblocks[i].y == y)
-					return true;
-			}
-		}
-		return false;
-	}
+	// // returns 'true' if there is a block with coords 'x' and 'y' in 'worldblocks'
+	// function find_block(x, y) {
+		// for (var i = 0; i < worldblocks.length(); i++) {
+			// if (worldblocks[i].x == x) {
+				// if (worldblocks[i].y == y)
+					// return true;
+			// }
+		// }
+		// return false;
+	// }
 	
 	// sets all 'gravln_[...]' according to constitution of 'worldblocks'
-	//TDODO: turn all world blocks anti clock wise --> same algo can be applied to get all gravlines
+	//TODO: turn all world blocks anti clock wise --> same algo can be applied to get all gravlines
 	function update_gravlines() {
 		var candidates = new Array();
+		var span = 0; //distance between new gravline and "ground"
 		
 		
 		for (var i = 0; i < candidates.length(); i++) {
