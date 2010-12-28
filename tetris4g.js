@@ -1,9 +1,11 @@
 // click handlers
 function addClickHandlers() {
 	$("#start").click(function() {
-		$("#menu").css("display","none");
+		$("#menu").slideUp(600);
+		$("#help").slideUp(600);
+		$("#browsertip").slideUp(600);
+		$("#warning").slideUp(600);
 		$("#game").css("display","inline");
-		$("#help").css("display","none");
 
 		// attaching the sketch function to the canvas
 		var p = new Processing($("#canvas1").get(0), sketch);
@@ -11,10 +13,10 @@ function addClickHandlers() {
 
 	$("#showhelp").click(function() {
 		if ($("#help").css("display")=="none") {
-			$("#help").css("display","inline");
+			$("#help").slideDown(600);
 			$("#showhelp").attr("value","Hide help");
 		} else {
-			$("#help").css("display","none");
+			$("#help").slideUp(600);
 			$("#showhelp").attr("value","Show help");
 		}
 	});
@@ -50,14 +52,13 @@ $(document).ready( function() {
 	else if (navigator.userAgent.indexOf("Netscape.") != -1) {
 		$("#warning").append(txt + "Opera<br/>");
 	}
-	// else if (navigator.userAgent.indexOf("MSIE") != -1) {
-		// $("#warning").append(txt + "Microsoft Internet Explorer.<br/>");
-		// weardown = true;
-	// }
+	else if (navigator.userAgent.indexOf("MSIE") != -1) {
+		$("#warning").append(txt + "Microsoft Internet Explorer.<br/>");
+		weardown = true;
+	}
 	else {
 		$("#warning").append(txt + "an unidentified Browser.<br/>");
 		$("#warning").css("background-color", "orange");
-		$("#browsertip").delay(3000).slideDown(600);
 	}
 
 	if (tested == true) {
@@ -69,9 +70,6 @@ $(document).ready( function() {
 	}
 	if (weardown == true) {
 		$("#warning").append("<b><font size='5'> <br/>Would you please refrain from using our worthy game with such an unworthy \"browser\"!  </font> </b>");
-	}
-	else {
-		$("#browsertip").delay(6000).fadeTo("slow", 0.5);
 	}
 	$("#warning").slideDown(600);
 	$("#warning").delay(3000).fadeTo("slow", 0.5);
@@ -890,8 +888,11 @@ function sketch(p) {
 			p.text("Loading game data...",100,100);
 
 			loading = false;
-			if (backgroundimg.width<=0)
+			if (backgroundimg.width <= 0) {
 				loading = true;
+				if (backgroundimg.width == -1)
+					p.text("Error while loading game data!",50,50);
+			}
 			
 			return;
 		}
