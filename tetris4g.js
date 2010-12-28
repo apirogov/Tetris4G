@@ -796,6 +796,7 @@ function sketch(p) {
 		backgroundimg = p.requestImage("./gfx/background.png");
 
 		//start soundtrack if music is turned on
+		document.getElementById("soundtrack").volume=0.1; //not that loud...
 		if(musicon)
 			document.getElementById("soundtrack").play();
 		
