@@ -22,6 +22,45 @@ function addClickHandlers() {
 
 // ready event for document -- executed when DOM is ready
 $(document).ready(addClickHandlers);
+$(document).ready( function() {
+	var tested = false;
+	$("#warning").append("Sie benutzen ");
+	if (navigator.userAgent.indexOf("Firefox") != -1) {
+		$("#warning").append("Firefox<br/>");
+		tested = true;
+	}
+	// if (navigator.userAgent.indexOf("Opera") != -1)
+	// {
+	   // refer = "opera.html";
+	   // document.write('Opera');
+	// }
+	// else if (navigator.userAgent.indexOf("Netscape") != -1)
+	// {
+	   // refer = "netscapelink.html";
+	   // document.write('Netscape Navigator');
+	// }
+	// else if (navigator.appName.indexOf("Internet Explorer") != -1)
+	// {
+	   // refer = "msielink.html";
+	   // document.write('Internet Explorer');
+	// }
+	// else if (navigator.userAgent.indexOf("Firefox") != -1)
+	// {
+	   // //refer = "firefox.html";
+	   // $("#warning").append("Firefox :)");
+	// }
+	// else
+	// {
+	   // refer = "unbekannt.html";
+	   // document.write('Unbekannter Browser');
+	// }
+	if (tested == true) {
+		$("#warning").append("<b>The game was successfully tested with your browser.</b>");
+	}
+	$("#warning").slideDown(600);
+	$("#warning").fadeTo("slow", 0.5);
+	$("#warning").css({"font-weight": "bolder"});
+	});
 
 // implement indexOf if not present
 if (!Array.prototype.indexOf) {
@@ -442,6 +481,11 @@ function sketch(p) {
 				p.text(currmsg[0],fieldszpx/2-txtfont.width(currmsg[0])*currmsg[1]/2, fieldszpx/2-15);
 			}
 		}
+	}
+	
+	// renders visual effects when blocks are destroyed
+	function VisualEffektRenderer() {
+	
 	}
 	
 	// ******************** functions ********************
@@ -878,23 +922,7 @@ function sketch(p) {
 		//}
 	}
 
-	p.keyPressed = function() {
-		// Leave (abort) game
-		if (p.keyCode == p.ESC) {
-			p.exit();
-			document.getElementById("soundtrack").pause();
-			$("#game").css("display","none");
-			$("#menu").css("display","inline");
-		}
-		
-		if (p.key == 109) { //m -> toggle music
-			if (musicon)
-				document.getElementById("soundtrack").pause();
-			 else
-				document.getElementById("soundtrack").play();
-			 musicon = !musicon;
-		}
-		
+	p.keyPressed = function() {		
 		if (!game_over) {
 			//rotation
 			if (p.key == 101) // e
@@ -925,5 +953,23 @@ function sketch(p) {
 				//TODO: move tetromino DOWN in gravity direction...
 			}
 		}
+	}
+	
+	p.keyReleased = function () {
+		// Leave (abort) game
+		if (p.keyCode == p.ESC) {
+			p.exit();
+			document.getElementById("soundtrack").pause();
+			$("#game").css("display","none");
+			$("#menu").css("display","inline");
+		}
+		
+		if (p.key == 109) { //m -> toggle music
+			if (musicon)
+				document.getElementById("soundtrack").pause();
+			 else
+				document.getElementById("soundtrack").play();
+			 musicon = !musicon;
+		}	
 	}
 }

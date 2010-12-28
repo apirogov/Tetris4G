@@ -12,6 +12,11 @@ body {
 	display: none;
 }
 
+#warning {
+	background-color: red;
+	display: none;
+}
+
 #lastscore {
 	display: none;
 }
