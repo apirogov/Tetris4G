@@ -81,6 +81,15 @@ function sketch(p) {
 	// var finish_time = 5; //time until game is left after game over
 	// var finish_frame = 0; //frame when game should be left
 
+	//Init sound effects channel array
+	var channel_max = 10;			// number of channels
+	var audiochannels = new Array();
+	for (a=0;a<channel_max;a++) {	// prepare the channels
+		audiochannels[a] = new Array();
+		audiochannels[a]['channel'] = new Audio();	// create a new audio object
+		audiochannels[a]['finished'] = -1;			// expected end time for this channel
+	}
+
 	//World & Tetrominoes
 	var spawnx = fieldsz/2; //Spawn field coordinates (kinda center of it)
 	var spawny = fieldsz/2;
@@ -358,6 +367,7 @@ function sketch(p) {
 		// move the tetromino (x,y - relative directions), drop on collision
 		this.move = function(x,y) {
 			if (this.chk_touch(x,y)) {
+				play_sound("drop");
 				add_tetr_to_world();
 				return false;
 			}
@@ -445,8 +455,29 @@ function sketch(p) {
 	}
 	
 	// ******************** functions ********************
+	
+	//plays sound (s=id name without "sfx_" prefix)
+	//code from: http://www.storiesinflight.com/html5/audio.html
+	function play_sound(s) {
+		if (typeof audiochannels == 'undefined')
+			return;
+
+		s = "sfx_"+s; //add id prefix
+		for (a=0;a<audiochannels.length;a++) {
+			thistime = new Date();
+			if (audiochannels[a]['finished'] < thistime.getTime()) {			// is this channel finished?
+				audiochannels[a]['finished'] = thistime.getTime() + document.getElementById(s).duration*1000;
+				audiochannels[a]['channel'].src = document.getElementById(s).src;
+				audiochannels[a]['channel'].load();
+				audiochannels[a]['channel'].play();
+				break;
+			}
+		}
+	}
+
 	// next -> current, generate next
 	function next_tetromino() {
+		play_sound("spawn");
 		currtetr = nexttetr;
 		currtetr.spawnframe = p.frameCount;
 		nexttetr = new Tetromino(p.int(p.random(0,7)));
@@ -481,7 +512,7 @@ function sketch(p) {
 	}
 
 	// check if there is a finished row or square
-	// TODO: square detection, find bug
+	// TODO: square detection, fix bug with 4x4 etc.!!!
 	function chk_rows_and_squares() {
 		var colors = [LBLUE, BLUE, ORANGE, YELLOW, GREEN, PURPLE, RED]; /* for message text color */
 
@@ -535,6 +566,13 @@ function sketch(p) {
 			if (rowcount > 1)
 				txt = rowcount.toString()+"x Row!";
 			msgrenderer.push_msg(txt,20,colors[rowcount-1],2+0.2*rowcount);
+			//play sound
+			if (rowcount == 1)
+				playsound("row");
+			else if (rowcount == 2)
+				playsound("row2");
+			else if (rowcount > 2)
+				playsound("row3");
 		}
 
 		/***** SQUARE DETECTION *****/
@@ -627,6 +665,14 @@ function sketch(p) {
 					blocksremoved += squareside*squareside;
 					score += squareside*squareside * (squareside-2)*(squareside-2);
 					msgrenderer.push_msg((squareside.toString()+"x"+squareside.toString()+" Square!"),20,colors[squareside-3],2+0.2*(squareside-3));
+
+					//play sound
+					if (squareside == 3)
+						play_sound("sq3");
+					else if (squareside == 4)
+						play_sound("sq4");
+					else if (squareside >= 5)
+						play_sound("sq5");
 				}
 			}
 		}
@@ -735,6 +781,7 @@ function sketch(p) {
 	
 	function finish() {
 		msgrenderer.push_msg("GAME OVER!", 50, RED, 0);
+		play_sound("gameover");
 		game_over = true;
 		finished = true;
 	}
@@ -752,9 +799,9 @@ function sketch(p) {
 		backgroundimg = p.requestImage("./gfx/background.png");
 
 		//start soundtrack if music is turned on
-		document.getElementById("soundtrack").volume=0.1; //not that loud...
+		document.getElementById("sfx_soundtrack").volume=0.1; //not that loud...
 		if(musicon)
-			document.getElementById("soundtrack").play();
+			document.getElementById("sfx_soundtrack").play();
 		
 		game_over = false;
 		finished = false;
@@ -803,8 +850,10 @@ function sketch(p) {
 				apply_gravity(currtetr);
 			}
 
-			if (p.frameCount > currtetr.spawnframe+maxtetrtime_f) //check the tetromino life state
+			if (p.frameCount > currtetr.spawnframe+maxtetrtime_f) { //check the tetromino life state
 				add_tetr_to_world();
+				play_sound("tetr_timeout");
+			}
 
 			chk_rows_and_squares(); //check rows/squares -> remove, add score etc.
 			chk_gameover(); //check whether there are foreign blocks in spawn zone -> lose
@@ -883,16 +932,16 @@ function sketch(p) {
 		// Leave (abort) game
 		if (p.keyCode == p.ESC) {
 			p.exit();
-			document.getElementById("soundtrack").pause();
+			document.getElementById("sfx_soundtrack").pause();
 			$("#game").css("display","none");
 			$("#menu").css("display","inline");
 		}
 		
 		if (p.key == 109) { //m -> toggle music
 			if (musicon)
-				document.getElementById("soundtrack").pause();
+				document.getElementById("sfx_soundtrack").pause();
 			 else
-				document.getElementById("soundtrack").play();
+				document.getElementById("sfx_soundtrack").play();
 			 musicon = !musicon;
 		}
 		
