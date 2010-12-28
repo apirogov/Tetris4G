@@ -7,7 +7,6 @@ function addClickHandlers() {
 
 		// attaching the sketch function to the canvas
 		var p = new Processing($("#canvas1").get(0), sketch);
-		document.getElementById("soundtrack").play();
 	});
 
 	$("#showhelp").click(function() {
@@ -77,7 +76,7 @@ function sketch(p) {
 	
 	var game_over = false; //stops game if set 'true'
 	var finished = false; // true=everything done, game can be left
-	var musicon = true; // true = play soundtrack in loop
+	var musicon = false; // true = play soundtrack in loop
 	// var game_over_frame = 0; //frame at which game stopped
 	// var finish_time = 5; //time until game is left after game over
 	// var finish_frame = 0; //frame when game should be left
@@ -97,7 +96,7 @@ function sketch(p) {
 
 	//User visible stats
 	var score=0;
-	var rows =0;
+	var blocksremoved=0; //number of removed blocks
 	
 	// position of world gravity lines
 	var gravln_left = null;
@@ -483,7 +482,10 @@ function sketch(p) {
 
 	// check if there is a finished row or square
 	// TODO: square detection, find bug
-	function chk_rows() {
+	function chk_rows_and_squares() {
+		var colors = [LBLUE, BLUE, ORANGE, YELLOW, GREEN, PURPLE, RED]; /* for message text color */
+
+		/***** ROW + COL DETECTION *****/
 		var rowcount=0;
 		
 		if (worldmatr == null)
@@ -524,25 +526,117 @@ function sketch(p) {
 					worldmatr[ix][i].to_remove = true;
 			}
 		}
-		// remove that blocks
+		//update score/stats + show message if there were rows
+		if (rowcount > 0) {
+			blocksremoved += rowcount*fieldsz;
+			score += 10 * rowcount*rowcount;
+
+			var txt = "Row!";
+			if (rowcount > 1)
+				txt = rowcount.toString()+"x Row!";
+			msgrenderer.push_msg(txt,20,colors[rowcount-1],2+0.2*rowcount);
+		}
+
+		/***** SQUARE DETECTION *****/
+
+		//sort world blocks -> important to find the big (4x4 etc) blocks FIRST
+		//sorts the blocks in a way that lower coordinates come first
+		worldblocks.sort(function(a,b) {
+			return (a.x+a.y) - (b.x+b.y);
+		})
+
+		//look for 3x3 squares, then try to expand to sides (a 3x3 square might be something bigger like 4x4)
+		for(var i=0; i<worldblocks.length; i++) {
+			var ix=worldblocks[i].x;
+			var iy=worldblocks[i].y;
+
+			//dont even look at the surrounding of that block if it doesn't meet the conditions
+			if (worldmatr[ix][iy]==null)
+				continue;
+			if (ix>fieldsz-3 || iy>fieldsz-3) //cant be a square from here... out of game field
+				continue;
+			if (worldblocks[i].last_move_done==true) //that block was falling down... doesn't count
+				continue;
+			if (worldblocks[i].to_remove==true) //is already part of a square
+				continue;
+
+			else { //look for a 3x3 square growing from this block down and right
+				var clr=worldblocks[i].type;
+				var square = true;
+
+				for(var y=0; y<3; y++) {
+					for(var x=0; x<3; x++) {
+						if (worldmatr[ix+x][iy+y]==null || worldmatr[ix+x][iy+y].to_remove==true
+								|| worldmatr[ix+x][iy+y].type != clr) {
+							square = false;
+							break;
+						}
+					}
+					if (square==false) //saves time
+						break;
+				}
+
+				if (square) {
+					var squareside = 3; //minimal square
+
+					//check whether the square is bigger...
+					
+					var onemore=true;
+					do {
+						onemore=true;
+						for(var i=0; i<=squareside; i++) {
+							var x = ix+i;
+							var y = iy+squareside;
+							if (x>=fieldsz || y>=fieldsz) { //out of bound?
+								onemore=false;
+								break;
+							}
+
+							if (worldmatr[x][y]==null || worldmatr[x][y].to_remove==true
+								|| worldmatr[x][y].type != clr) {
+									onemore=false;
+									break;
+							}
+							
+							x=ix+squareside;
+							y=iy+i;
+							if (x>=fieldsz || y>=fieldsz) { //out of bound?
+								onemore=false;
+								break;
+							}
+
+							if (worldmatr[x][y]==null || worldmatr[x][y].to_remove==true
+								|| worldmatr[x][y].type != clr) {
+									onemore=false;
+									break;
+							}
+						}
+
+						if(onemore)
+							squareside++;
+					} while(onemore==true);
+					
+
+					//set blocks for removal
+					for(var y=0; y<squareside; y++)
+						for(var x=0; x<squareside; x++) {
+							worldmatr[ix+x][iy+y].to_remove = true;
+						}
+					
+					//update score/stats + show message
+					blocksremoved += squareside*squareside;
+					score += squareside*squareside * (squareside-2)*(squareside-2);
+					msgrenderer.push_msg((squareside.toString()+"x"+squareside.toString()+" Square!"),20,colors[squareside-3],2+0.2*(squareside-3));
+				}
+			}
+		}
+
+		// remove blocks which are marked to be removed
 		for(var i=0; i<worldblocks.length; i++) {
 			if (worldblocks[i].to_remove == true) {
 				worldblocks.splice(i,1);
 				i--;
 			}
-		}
-
-		//update score/stats
-		rows += rowcount;
-		score += 10 * rowcount*rowcount;
-
-		//show message if there were rows
-		if (rowcount > 0) {
-			var colors = [LBLUE, BLUE, ORANGE, YELLOW, GREEN, PURPLE, RED];
-			var txt = "Row!";
-			if (rowcount > 1)
-				txt = rowcount.toString()+"x Row!";
-			msgrenderer.push_msg(txt,20,colors[rowcount-1],2+0.2*rowcount);
 		}
 	}
 	
@@ -656,6 +750,10 @@ function sketch(p) {
 
 		//load GFX
 		backgroundimg = p.requestImage("./gfx/background.png");
+
+		//start soundtrack if music is turned on
+		if(musicon)
+			document.getElementById("soundtrack").play();
 		
 		game_over = false;
 		finished = false;
@@ -707,7 +805,7 @@ function sketch(p) {
 			if (p.frameCount > currtetr.spawnframe+maxtetrtime_f) //check the tetromino life state
 				add_tetr_to_world();
 
-			chk_rows(); //check rows/squares -> remove, add score etc.
+			chk_rows_and_squares(); //check rows/squares -> remove, add score etc.
 			chk_gameover(); //check whether there are foreign blocks in spawn zone -> lose
 		} else {
 			if (!finished) {
@@ -757,9 +855,9 @@ function sketch(p) {
 			p.text(p.int(((maxtetrtime_f-(p.frameCount-currtetr.spawnframe))/fps)).toString(),520,280);
 		}
 		p.fill(255);
-		p.text("Rows:",520,340);
+		p.text("Removed:",520,340);
 		p.fill(0);
-		p.text(rows.toString(),520,370);
+		p.text(blocksremoved.toString(),520,370);
 		p.fill(255);
 		p.text("Score:",520,420);
 		p.fill(0);
@@ -775,9 +873,9 @@ function sketch(p) {
 		msgrenderer.render(); //render text messages
 		
 		//DEBUG
-		if (check_tower(new Block(2,5,0)) == true) {
-			msgrenderer.push_msg("check_tower OK!", 30, RED, 1);
-		}
+		//if (check_tower(new Block(2,5,0)) == true) {
+		//	msgrenderer.push_msg("check_tower OK!", 30, RED, 1);
+		//}
 	}
 
 	p.keyPressed = function() {
