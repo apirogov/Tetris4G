@@ -18,49 +18,64 @@ function addClickHandlers() {
 			$("#showhelp").attr("value","Show help");
 		}
 	});
+	
+	$("#warning").hover(
+		function() {
+			$(this).fadeTo("fast", 1);
+		},
+		function() {
+			$(this).fadeTo("slow", 0.5);
+		}
+	);
 }
 
 // ready event for document -- executed when DOM is ready
 $(document).ready(addClickHandlers);
 $(document).ready( function() {
+	//browser detection and support "information"
 	var tested = false;
-	$("#warning").append("Sie benutzen ");
+	var weardown = false;
+	var txt = "You are using ";
 	if (navigator.userAgent.indexOf("Firefox") != -1) {
-		$("#warning").append("Firefox<br/>");
+		$("#warning").append(txt + "Firefox.<br/>");
 		tested = true;
 	}
-	// if (navigator.userAgent.indexOf("Opera") != -1)
-	// {
-	   // refer = "opera.html";
-	   // document.write('Opera');
+	else if (navigator.userAgent.indexOf("Chrome") != -1) {
+		$("#warning").append(txt + "Google Chrome.<br/>");
+		tested = true;
+	}
+	else if (navigator.userAgent.indexOf("Opera") != -1) {
+		$("#warning").append(txt + "Opera.<br/>");
+	}
+	else if (navigator.userAgent.indexOf("Netscape.") != -1) {
+		$("#warning").append(txt + "Opera<br/>");
+	}
+	// else if (navigator.userAgent.indexOf("MSIE") != -1) {
+		// $("#warning").append(txt + "Microsoft Internet Explorer.<br/>");
+		// weardown = true;
 	// }
-	// else if (navigator.userAgent.indexOf("Netscape") != -1)
-	// {
-	   // refer = "netscapelink.html";
-	   // document.write('Netscape Navigator');
-	// }
-	// else if (navigator.appName.indexOf("Internet Explorer") != -1)
-	// {
-	   // refer = "msielink.html";
-	   // document.write('Internet Explorer');
-	// }
-	// else if (navigator.userAgent.indexOf("Firefox") != -1)
-	// {
-	   // //refer = "firefox.html";
-	   // $("#warning").append("Firefox :)");
-	// }
-	// else
-	// {
-	   // refer = "unbekannt.html";
-	   // document.write('Unbekannter Browser');
-	// }
+	else {
+		$("#warning").append(txt + "an unidentified Browser.<br/>");
+		$("#warning").css("background-color", "orange");
+		$("#browsertip").delay(3000).slideDown(600);
+	}
+
 	if (tested == true) {
 		$("#warning").append("<b>The game was successfully tested with your browser.</b>");
+		$("#warning").css("background-color", "green");
+	} else {
+		$("#browsertip").delay(3000).slideDown(600);
+		$("#warning").append("<b>The game was not tested with your browser. Try yourself.</b>");
+	}
+	if (weardown == true) {
+		$("#warning").append("<b><font size='5'> <br/>Would you please refrain from using our worthy game with such an unworthy \"browser\"!  </font> </b>");
+	}
+	else {
+		$("#browsertip").delay(6000).fadeTo("slow", 0.5);
 	}
 	$("#warning").slideDown(600);
-	$("#warning").fadeTo("slow", 0.5);
-	$("#warning").css({"font-weight": "bolder"});
-	});
+	$("#warning").delay(3000).fadeTo("slow", 0.5);
+});
 
 // implement indexOf if not present
 if (!Array.prototype.indexOf) {

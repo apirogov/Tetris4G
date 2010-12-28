@@ -12,6 +12,11 @@ body {
 	display: none;
 }
 
+#browsertip {
+	display: none;
+	background-color: #01DF74;
+}
+
 #warning {
 	background-color: red;
 	display: none;
