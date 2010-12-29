@@ -177,7 +177,9 @@ function sketch(p) {
 	function Block(x, y, type) {
 		this.x = x;
 		this.y = y;
-		this.type = type;
+		this.type = type; //0-6 -> Tetrominos/normal colors, >6 -> special blocks
+		//Special Block numbers:
+		//TODO
 		this.last_move_done = true;
 
 		var types = [LBLUE, BLUE, ORANGE, YELLOW, GREEN, PURPLE, RED];
@@ -629,7 +631,7 @@ function sketch(p) {
 		}
 	}
 
-	// check if there is a finished row or square
+	// check if there is a finished row or square (of a single color + any joker/special blocks)
 	// TODO: square detection, fix bug with 4x4 etc.!!!
 	function chk_rows_and_squares() {
 		var colors = [LBLUE, BLUE, ORANGE, YELLOW, GREEN, PURPLE, RED]; /* for message text color */
@@ -645,7 +647,8 @@ function sketch(p) {
 			var isrow = true;
 			var currcolor = null;
 			for(var i=0; i<fieldsz; i++) {
-				if (worldmatr[i][iy] == null || (currcolor!=null && worldmatr[i][iy].type != currcolor)) {
+				if (worldmatr[i][iy] == null 
+						|| (currcolor!=null && worldmatr[i][iy].type<=6 && worldmatr[i][iy].type != currcolor)) {
 					isrow = false;
 					break;
 				} else if (currcolor == null)
@@ -663,7 +666,8 @@ function sketch(p) {
 			var iscol = true;
 			var currcolor = null;
 			for(var i=0; i<fieldsz; i++) {
-				if (worldmatr[ix][i] == null || (currcolor!=null && worldmatr[ix][i].type != currcolor)) {
+				if (worldmatr[ix][i] == null
+						|| (currcolor!=null && worldmatr[ix][i].type<=6 && worldmatr[ix][i].type != currcolor)) {
 					iscol = false;
 					break;
 				} else if (currcolor == null)
@@ -723,7 +727,7 @@ function sketch(p) {
 				for(var y=0; y<3; y++) {
 					for(var x=0; x<3; x++) {
 						if (worldmatr[ix+x][iy+y]==null || worldmatr[ix+x][iy+y].to_remove==true
-								|| worldmatr[ix+x][iy+y].type != clr) {
+								|| (worldmatr[ix+x][iy+y].type<=6 && worldmatr[ix+x][iy+y].type != clr)) {
 							square = false;
 							break;
 						}
@@ -749,9 +753,9 @@ function sketch(p) {
 							}
 
 							if (worldmatr[x][y]==null || worldmatr[x][y].to_remove==true
-								|| worldmatr[x][y].type != clr) {
-									onemore=false;
-									break;
+									|| (worldmatr[x][y].type<=6 && worldmatr[x][y].type != clr)) {
+								onemore=false;
+								break;
 							}
 							
 							x=ix+squareside;
@@ -762,9 +766,9 @@ function sketch(p) {
 							}
 
 							if (worldmatr[x][y]==null || worldmatr[x][y].to_remove==true
-								|| worldmatr[x][y].type != clr) {
-									onemore=false;
-									break;
+									|| (worldmatr[x][y].type<=6 && worldmatr[x][y].type != clr)) {
+								onemore=false;
+								break;
 							}
 						}
 
@@ -795,7 +799,12 @@ function sketch(p) {
 			}
 		}
 
-		// remove blocks which are marked to be removed
+		remove_marked_blocks();
+	}
+
+	// remove blocks which are marked to be removed (block.to_remove == true)
+	// TODO: check whether these are special mission/bonus blocks and do something accordingly
+	function remove_marked_blocks() {
 		for(var i=0; i<worldblocks.length; i++) {
 			if (worldblocks[i].to_remove == true) {
 				worldblocks.splice(i,1);
@@ -912,7 +921,9 @@ function sketch(p) {
 		visrenderer = new VisualEffectRenderer();
 
 		//load Font
-		txtfont = p.loadFont("./gfx/loveya.svg",30); //slow :(
+		txtfont = p.loadFont("./gfx/loveya.svg",30);
+		if(isNaN(txtfont.width("a"))) //Fallback to a TTF default font
+			txtfont = p.loadFont("Comic Sans MS",30);
 
 		//load GFX
 		backgroundimg = p.requestImage("./gfx/background.png");
@@ -1095,3 +1106,4 @@ function sketch(p) {
 		}
 	}
 }
+
