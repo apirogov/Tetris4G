@@ -114,6 +114,7 @@ function sketch(p) {
 	var PURPLE = p.color(255, 0, 255);
 	var RED = p.color(255, 0, 0);
 	var BLACK = p.color(0, 0, 0);
+	var colors = [LBLUE, BLUE, ORANGE, YELLOW, GREEN, PURPLE, RED, BLACK];
 	
 	// ******************** global vars ********************
 	
@@ -125,6 +126,7 @@ function sketch(p) {
 	var fps = 30; // framerate
 	var loading = true; //bool that indicates whether the game is ready to play or not
 	var msgrenderer = null; //object that handles on screen text messages (init in setup)
+	var visrenderer = null; //object that handles effects of vanishing blocks
 	
 	var game_over = false; //stops game if set 'true'
 	var finished = false; // true=everything done, game can be left
@@ -167,6 +169,7 @@ function sketch(p) {
 	
 	var key_force = null; //force of the control keys to move tetrominos
 	var lock_direction = null; //0=left, 1=right, 2=up, 3=down -- direction where player can´t move the tetronimo (=opposite direction of greatest gravity force)
+
 
 
 	// ******************** classes ********************
@@ -506,8 +509,66 @@ function sketch(p) {
 		}
 	}
 	
+	//type for effects of vanishing blocks(used by 'VisualEffectRenderer')
+	function Effect(x, y, color, duration) {
+		this.x = x;
+		this.y = y;
+		this.color = color;
+		this.start_frame = p.frameCount;
+		this.end_frame = this.start_frame + duration*fps;
+		this.fade_step1 = 255 / (duration*fps);
+		this.fade_step2 = 150 / (duration*fps);
+		this.alpha1 = 255;
+		this.alpha2 = 150;
+		
+		this.fade = function () {
+			this.alpha1 -= this.fade_step1;
+			this.alpha2 -= this.fade_step2;
+			if (this.alpha2 < 0)
+				this.alpha2 = 0;
+		}
+	}
+	
 	// renders visual effects when blocks are destroyed
-	function VisualEffektRenderer() {
+	// use push_effects(blocks, [duration]) or push_effect(block, [duration]) to add effects
+	function VisualEffectRenderer() {
+		var effects = new Array(); //[x, y, color, duration]
+		var duration0 = 2;
+		
+		//add an array of blocks (Array of 'Block', [duration in seconds])
+		this.push_effects = function(blocks, duration) {
+			var seconds = duration0;
+			if (duration != null)
+				seconds = duration;
+			for (var i = 0; i < blocks.length; i++) {
+				effects.push(new Effect(blocks[i].x, blocks[i].y, colors[blocks[i].type], seconds));
+			}		
+		}
+		
+		//add one block ('Block', [duration in seconds])
+		this.push_effect = function(block, duration) {
+			var seconds = duration0;
+			if (duration != null)
+				seconds = duration;
+			effects.push(new Effect(block.x, block.y, colors[block.type], seconds));
+		}
+		
+		this.render = function() {
+			for (var i = 0; i < effects.length; i++) {
+				if (p.frameCount < effects[i].end_frame) {
+					effects[i].fade();
+					if (p.frameCount % 30 == 0) msgrenderer.push_msg(effects[i].alpha1, 40, RED, 1);
+					p.text(effects[i].alpha, 50, 50);
+					//p.fill(p.red(effects[i].color),p.green(effects[i].color),p.blue(effects[i].color), effects[i].alpha);
+					p.stroke(effects[i].color, effects[i].alpha1);
+					p.fill(effects[i].color, effects[i].alpha2);
+					p.rect(effects[i].x*unitsz, effects[i].y*unitsz, unitsz, unitsz);
+				} else {
+					effects.splice(i, 1); //delte effect because finisehd
+				}
+			}
+		
+		}
 	
 	}
 	
@@ -848,6 +909,7 @@ function sketch(p) {
 	p.setup = function() {
 		p.frameRate(fps);
 		msgrenderer = new MessageRenderer();
+		visrenderer = new VisualEffectRenderer();
 
 		//load Font
 		txtfont = p.loadFont("./gfx/loveya.svg",30); //slow :(
@@ -981,11 +1043,7 @@ function sketch(p) {
 		nexttetr.draw_preview();
 
 		msgrenderer.render(); //render text messages
-		
-		//DEBUG
-		//if (check_tower(new Block(2,5,0)) == true) {
-		//	msgrenderer.push_msg("check_tower OK!", 30, RED, 1);
-		//}
+		visrenderer.render(); //render visual effects
 	}
 
 	p.keyPressed = function() {
@@ -1035,23 +1093,5 @@ function sketch(p) {
 				//TODO: move tetromino DOWN in gravity direction...
 			}
 		}
-	}
-	
-	p.keyReleased = function () {
-		// Leave (abort) game
-		if (p.keyCode == p.ESC) {
-			p.exit();
-			document.getElementById("soundtrack").pause();
-			$("#game").css("display","none");
-			$("#menu").css("display","inline");
-		}
-		
-		if (p.key == 109) { //m -> toggle music
-			if (musicon)
-				document.getElementById("soundtrack").pause();
-			 else
-				document.getElementById("soundtrack").play();
-			 musicon = !musicon;
-		}	
 	}
 }
