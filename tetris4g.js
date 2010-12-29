@@ -507,7 +507,7 @@ function sketch(p) {
 	}
 	
 	// renders visual effects when blocks are destroyed
-	function VisualEffektRenderer() {
+	function VisualEffectRenderer() {
 	
 	}
 	
@@ -850,7 +850,9 @@ function sketch(p) {
 		msgrenderer = new MessageRenderer();
 
 		//load Font
-		txtfont = p.loadFont("./gfx/loveya.svg",30); //slow :(
+		txtfont = p.loadFont("./gfx/loveya.svg",30);
+		if(isNaN(txtfont.width("a"))) //Fallback to a TTF default font
+			txtfont = p.loadFont("Comic Sans MS",30);
 
 		//load GFX
 		backgroundimg = p.requestImage("./gfx/background.png");
@@ -1055,3 +1057,4 @@ function sketch(p) {
 		}	
 	}
 }
+
