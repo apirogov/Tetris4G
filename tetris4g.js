@@ -808,7 +808,7 @@ function sketch(p) {
 	function remove_marked_blocks() {
 		for(var i=0; i<worldblocks.length; i++) {
 			if (worldblocks[i].to_remove == true) {
-				visrenderer.push_effect(worldblocks.splice(i,1),1);
+				visrenderer.push_effect(worldblocks.splice(i,1)[0]);
 				i--;
 			}
 		}
