@@ -681,11 +681,12 @@ function sketch(p) {
 		//update score/stats + show message if there were rows
 		if (rowcount > 0) {
 			blocksremoved += rowcount*fieldsz;
-			score += 10 * rowcount*rowcount;
+			var addscore = 10 * rowcount*rowcount;
+			score += addscore;
 
-			var txt = "Row!";
+			var txt = "Row! (+"+addscore.toString()+")";
 			if (rowcount > 1)
-				txt = rowcount.toString()+"x Row!";
+				txt = rowcount.toString()+"x "+txt;
 			msgrenderer.push_msg(txt,20,colors[rowcount-1],2+0.2*rowcount);
 			//play sound
 			if (rowcount == 1)
@@ -784,8 +785,9 @@ function sketch(p) {
 					
 					//update score/stats + show message
 					blocksremoved += squareside*squareside;
-					score += squareside*squareside * (squareside-2)*(squareside-2);
-					msgrenderer.push_msg((squareside.toString()+"x"+squareside.toString()+" Square!"),20,colors[squareside-3],2+0.2*(squareside-3));
+					var addscore = squareside*squareside * (squareside-2)*(squareside-2);
+					score += addscore;
+					msgrenderer.push_msg((squareside.toString()+"x"+squareside.toString()+" Square! (+"+addscore.toString()+")"),20,colors[squareside-3],2+0.2*(squareside-3));
 
 					//play sound
 					if (squareside == 3)
@@ -806,7 +808,7 @@ function sketch(p) {
 	function remove_marked_blocks() {
 		for(var i=0; i<worldblocks.length; i++) {
 			if (worldblocks[i].to_remove == true) {
-				worldblocks.splice(i,1);
+				visrenderer.push_effect(worldblocks.splice(i,1),1);
 				i--;
 			}
 		}
