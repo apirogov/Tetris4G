@@ -561,9 +561,6 @@ function sketch(p) {
 			for (var i = 0; i < effects.length; i++) {
 				if (p.frameCount < effects[i].end_frame) {
 					effects[i].fade();
-					if (p.frameCount % 30 == 0) msgrenderer.push_msg(effects[i].alpha1, 40, RED, 1);
-					p.text(effects[i].alpha, 50, 50);
-					//p.fill(p.red(effects[i].color),p.green(effects[i].color),p.blue(effects[i].color), effects[i].alpha);
 					p.stroke(effects[i].color, effects[i].alpha1);
 					p.fill(effects[i].color, effects[i].alpha2);
 					p.rect(effects[i].x*unitsz, effects[i].y*unitsz, unitsz, unitsz);
