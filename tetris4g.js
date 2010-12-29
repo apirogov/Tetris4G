@@ -23,9 +23,11 @@ function addClickHandlers() {
 	
 	$("#warning").hover(
 		function() {
+			$(this).clearQueue();
 			$(this).fadeTo("fast", 1);
 		},
 		function() {
+			$(this).clearQueue();
 			$(this).fadeTo("slow", 0.5);
 		}
 	);
@@ -152,7 +154,7 @@ function sketch(p) {
 	var currtetr = null; //current tetromino -- controlled by keys and gravity
 	var nexttetr = null; //next tetromino
 	//time vars -- "_f" = "time in frames"
-	var move_time = 1; //seconds -- time between movements by gravity
+	var move_time = 0.5; //seconds -- time between movements by gravity
 	var move_time_f = move_time * fps;
 	var maxtetrtime = 5; //seconds -- time a tetromino is under control
 	var maxtetrtime_f = maxtetrtime * fps;
