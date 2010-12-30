@@ -154,8 +154,9 @@ function sketch(p) {
 	var currtetr = null; //current tetromino -- controlled by keys and gravity
 	var nexttetr = null; //next tetromino
 	//time vars -- "_f" = "time in frames"
-	var move_time = 0.5; //seconds -- time between movements by gravity
+	var move_time = 1; //seconds -- time between movements by gravity
 	var move_time_f = move_time * fps;
+	var specblockrate = 10; // 1 / n rate for spec blocks (bigger -> less chance)
 	var maxtetrtime = 5; //seconds -- time a tetromino is under control
 	var maxtetrtime_f = maxtetrtime * fps;
 
@@ -701,100 +702,57 @@ function sketch(p) {
 
 		//sort world blocks -> important to find the big (4x4 etc) blocks FIRST
 		//sorts the blocks in a way that lower coordinates come first
-		worldblocks.sort(function(a,b) {
-			return (a.x+a.y) - (b.x+b.y);
-		})
+		//worldblocks.sort(function(a,b) {
+	//		return (a.x+a.y) - (b.x+b.y);
+//		})
 
-		//look for 3x3 squares, then try to expand to sides (a 3x3 square might be something bigger like 4x4)
-		for(var i=0; i<worldblocks.length; i++) {
-			var ix=worldblocks[i].x;
-			var iy=worldblocks[i].y;
+		for(var side=7; side >= 3; side--) { //check first square size 7, then down to 3...
+			//check every world block...
+			for(var i=0; i<worldblocks.length; i++) {
+				var ix=worldblocks[i].x;
+				var iy=worldblocks[i].y;
 
-			//dont even look at the surrounding of that block if it doesn't meet the conditions
-			if (worldmatr[ix][iy]==null)
-				continue;
-			if (ix>fieldsz-3 || iy>fieldsz-3) //cant be a square from here... out of game field
-				continue;
-			if (worldblocks[i].last_move_done==true) //that block was falling down... doesn't count
-				continue;
-			if (worldblocks[i].to_remove==true) //is already part of a square
-				continue;
+				//dont even look at the surrounding of that block if it doesn't meet the conditions
+				if (ix>fieldsz-side || iy>fieldsz-side) //cant be a square from here... out of game field
+					continue;
+				if (worldblocks[i].last_move_done==true) //that block was falling down... doesn't count
+					continue;
+				if (worldblocks[i].to_remove==true) //is already part of a square
+					continue;
 
-			else { //look for a 3x3 square growing from this block down and right
 				var clr=worldblocks[i].type;
 				var square = true;
 
-				for(var y=0; y<3; y++) {
-					for(var x=0; x<3; x++) {
+				//look for a 3x3 square growing from this block down and right
+				for(var y=0; y<side; y++) {
+					for(var x=0; x<side; x++) {
 						if (worldmatr[ix+x][iy+y]==null || worldmatr[ix+x][iy+y].to_remove==true
 								|| (worldmatr[ix+x][iy+y].type<=6 && worldmatr[ix+x][iy+y].type != clr)) {
 							square = false;
 							break;
 						}
 					}
-					if (square==false) //saves time
-						break;
-				}
+				}	
 
 				if (square) {
-					var squareside = 3; //minimal square
-
-					//check whether the square is bigger...
-					
-					var onemore=true;
-					do {
-						onemore=true;
-						for(var i=0; i<=squareside; i++) {
-							var x = ix+i;
-							var y = iy+squareside;
-							if (x>=fieldsz || y>=fieldsz) { //out of bound?
-								onemore=false;
-								break;
-							}
-
-							if (worldmatr[x][y]==null || worldmatr[x][y].to_remove==true
-									|| (worldmatr[x][y].type<=6 && worldmatr[x][y].type != clr)) {
-								onemore=false;
-								break;
-							}
-							
-							x=ix+squareside;
-							y=iy+i;
-							if (x>=fieldsz || y>=fieldsz) { //out of bound?
-								onemore=false;
-								break;
-							}
-
-							if (worldmatr[x][y]==null || worldmatr[x][y].to_remove==true
-									|| (worldmatr[x][y].type<=6 && worldmatr[x][y].type != clr)) {
-								onemore=false;
-								break;
-							}
-						}
-
-						if(onemore)
-							squareside++;
-					} while(onemore==true);
-					
-
 					//set blocks for removal
-					for(var y=0; y<squareside; y++)
-						for(var x=0; x<squareside; x++) {
+					for(var y=0; y<side; y++)
+						for(var x=0; x<side; x++) {
 							worldmatr[ix+x][iy+y].to_remove = true;
 						}
 					
 					//update score/stats + show message
-					blocksremoved += squareside*squareside;
-					var addscore = squareside*squareside * (squareside-2)*(squareside-2);
+					blocksremoved += side*side;
+					var addscore = side*side * (side-2)*(side-2);
 					score += addscore;
-					msgrenderer.push_msg((squareside.toString()+"x"+squareside.toString()+" Square! (+"+addscore.toString()+")"),20,colors[squareside-3],2+0.2*(squareside-3));
+					msgrenderer.push_msg((side.toString()+"x"+side.toString()+" Square! (+"+addscore.toString()+")"),20,colors[side-3],2+0.2*(side-3));
 
 					//play sound
-					if (squareside == 3)
+					if (side == 3)
 						play_sound("sq3");
-					else if (squareside == 4)
+					else if (side == 4)
 						play_sound("sq4");
-					else if (squareside >= 5)
+					else if (side >= 5)
 						play_sound("sq5");
 				}
 			}
