@@ -130,6 +130,7 @@ function sketch(p) {
 	var msgrenderer = null; //object that handles on screen text messages (init in setup)
 	var visrenderer = null; //object that handles effects of vanishing blocks
 	
+	var paused = false; //game is paused if set 'true'
 	var game_over = false; //stops game if set 'true'
 	var finished = false; // true=everything done, game can be left
 	var musicon = false; // true = play soundtrack in loop
@@ -873,11 +874,6 @@ function sketch(p) {
 	//returns 'true' if 'block' is part of a "tower of blocks" from the LEFT
 	function check_tower(block) {
 		for (var x = block.x; x > 0; x--) { //also checks if block is really part of wordblocks ;)
-			if (worldmatr[x] == null) {
-				msgrenderer.push_msg("FAIL!", 50, RED, 1);
-				break;
-			}
-				
 			if (worldmatr[x][block.y] == null)
 				return false;
 		}
@@ -887,13 +883,16 @@ function sketch(p) {
 	// sets all 'gravln_[...]' according to constitution of 'worldblocks'
 	//TODO: turn all world blocks anti clock wise --> same algo can be applied to get all gravlines
 	function update_gravlines() {
-		var cand = new Array(); //candidates
+		var matr = worldmatr;
+		//var cand = new Array(); //candidates
 		var span = 0; //distance between new gravline and "ground"
 		
 		
-		for (var i = 0; i < cand.length; i++) {
+		
+		
+		// for (var i = 0; i < cand.length; i++) {
 			
-		}
+		// }
 	
 	}
 	
@@ -934,6 +933,7 @@ function sketch(p) {
 		if(musicon)
 			document.getElementById("sfx_soundtrack").play();
 		
+		paused = false;
 		game_over = false;
 		finished = false;
 
@@ -974,7 +974,7 @@ function sketch(p) {
 		/************* game logic ************/
 		//TODO: missions etc...
 		
-		if (!game_over) {
+		if (!game_over && !paused) {
 			update_worldmatr(); //recalculate blocks in world matrix
 			update_gravlines();
 
@@ -1067,7 +1067,21 @@ function sketch(p) {
 			$("#menu").css("display","inline");
 		}
 		
-		if (p.key == 109) { //m -> toggle music
+		//pause game
+		if (p.keyCode == 80) { //"p"
+			paused = !paused;
+			if (paused) {
+				msgrenderer.push_msg("PAUSED", 50, RED, 0);
+				$("#help").slideDown(600);
+			}
+			else {
+				msgrenderer.shift_msg();
+				$("#help").slideUp(600);
+			}
+		}
+		
+		
+		if (p.key == 109) { //"m" -> toggle music
 			if (musicon)
 				document.getElementById("sfx_soundtrack").pause();
 			 else
@@ -1075,27 +1089,27 @@ function sketch(p) {
 			 musicon = !musicon;
 		}
 		
-		if (!game_over) {
+		if (!game_over && !paused) {
 			//rotation
-			if (p.key == 101) // e
+			if (p.key == 101) //"e"
 				currtetr.rotate_right();
-			else if (p.key == 113) // q
+			else if (p.key == 113) //"q"
 				currtetr.rotate_left();
 			
-			if (p.keyCode == p.LEFT || p.key == 97) { // left & a
+			if (p.keyCode == p.LEFT || p.key == 97) { // left & "a"
 				if (lock_direction != 0) {
 					currtetr.move(-1,0);
 				}
-			} else if (p.keyCode == p.RIGHT || p.key == 100) { // right & d
+			} else if (p.keyCode == p.RIGHT || p.key == 100) { // right & "d"
 				if (lock_direction != 1) {
 					currtetr.move(1,0);
 				}
 			}
-			if (p.keyCode == p.UP || p.key == 119) { // up & w
+			if (p.keyCode == p.UP || p.key == 119) { // up & "w"
 				if (lock_direction != 2) {
 					currtetr.move(0,-1);
 				}
-			} else if (p.keyCode == p.DOWN || p.key == 115) { // down & s
+			} else if (p.keyCode == p.DOWN || p.key == 115) { // down & "s"
 				if (lock_direction != 3) {
 					currtetr.move(0,1);
 				}
