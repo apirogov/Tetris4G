@@ -183,9 +183,9 @@ function sketch(p) {
 		this.type = type; //0-6 -> Tetrominos/normal colors, >6 -> special blocks
 		//Special Block numbers:
 		//TODO
-		this.last_move_done = true;
+		this.spawnframe = p.frameCount; //birth frame -> for duration etc
+		this.last_move_done = true; //is still moving or lying still?
 
-		var types = [LBLUE, BLUE, ORANGE, YELLOW, GREEN, PURPLE, RED];
 		var step = 256/unitsz;
 
 		// x,y are optional offset coordinates (if the stored x and y are relative)
@@ -205,7 +205,7 @@ function sketch(p) {
 			if (this.type > 6 || this.type < 0)
 				var clr = BLACK;
 			else
-				var clr = types[this.type];
+				var clr = colors[this.type];
 
 			// render the block
 			p.noFill();
@@ -608,11 +608,21 @@ function sketch(p) {
 		for(var i=0; i<currtetr.blocks.length; i++) {
 			var x = currtetr.x+currtetr.blocks[i].x;
 			var y = currtetr.y+currtetr.blocks[i].y;
-			var type = currtetr.type;
-			worldblocks.push(new Block(x,y,type));
+			worldblocks.push(new Block(x,y,currtetr.blocks[i].type));
 		}
 
 		next_tetromino();
+	}
+
+	//checks and removes aged blocks
+	function remove_old_special_blocks() {
+		//TODO: check world blocks,
+		//remove the special blocks with duration
+		//that are too old
+		//DEBUG: (removes all LBLUE blocks after 3 sec in world)
+	//	for(var i=0; i<worldblocks.length; i++)
+	//		if (worldblocks[i].type==0 && worldblocks[i].spawnframe+3*fps<=p.frameCount)
+	//			visrenderer.push_effect(worldblocks.splice(i,1), 1);
 	}
 	
 	//Calculate worldmatr from worldblocks
@@ -632,10 +642,7 @@ function sketch(p) {
 	}
 
 	// check if there is a finished row or square (of a single color + any joker/special blocks)
-	// TODO: square detection, fix bug with 4x4 etc.!!!
 	function chk_rows_and_squares() {
-		var colors = [LBLUE, BLUE, ORANGE, YELLOW, GREEN, PURPLE, RED]; /* for message text color */
-
 		/***** ROW + COL DETECTION *****/
 		var rowcount=0;
 		
@@ -947,6 +954,7 @@ function sketch(p) {
 				play_sound("tetr_timeout");
 			}
 
+			remove_old_special_blocks(); //remove blocks with duration which are too old
 			chk_rows_and_squares(); //check rows/squares -> remove, add score etc.
 			chk_gameover(); //check whether there are foreign blocks in spawn zone -> lose
 		} else {
