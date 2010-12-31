@@ -115,9 +115,34 @@ function sketch(p) {
 	var GREEN = p.color(0, 255, 0);
 	var PURPLE = p.color(255, 0, 255);
 	var RED = p.color(255, 0, 0);
+	//special colors
+	var WHITE = p.color(127, 127, 127)
 	var BLACK = p.color(0, 0, 0);
-	var colors = [LBLUE, BLUE, ORANGE, YELLOW, GREEN, PURPLE, RED, BLACK];
+	var colors = [LBLUE, BLUE, ORANGE, YELLOW, GREEN, PURPLE, RED, WHITE, BLACK]; //index = type, value = color
 	
+	// ******************** global type constants **********
+	// normal tetrominos
+	var TETR_I			= 0;
+	var TETR_J			= 1;
+	var TETR_L			= 2;
+	var TETR_O			= 3;
+	var TETR_S			= 4;
+	var TETR_T			= 5;
+	var TETR_Z			= 6;
+	// normal goodies
+	var B_STRTMISSION	= 100;
+	var B_JOKER			= 101;
+	var B_SPECJOKER		= 102;
+	var B_REMOVEROW		= 103;
+	var B_DBLSCORE		= 104;
+	var B_DBLMVTIME		= 105;
+	// normal baddies
+	var B_HALFMVTIME	= 200;
+	var B_NEGSCORE		= 201;
+	var B_RNDSPAWN		= 202;
+	// mission rewards (need to be unlocked)
+	var B_NUKE			= 300;
+
 	// ******************** global vars ********************
 	
 	// required images+fonts (loaded in setup)
@@ -156,8 +181,9 @@ function sketch(p) {
 	var currtetr = null; //current tetromino -- controlled by keys and gravity
 	var nexttetr = null; //next tetromino
 	//time vars -- "_f" = "time in frames"
-	var move_time = 0.5; //seconds -- time between movements by gravity
+	var move_time = 1; //seconds -- time between movements by gravity
 	var move_time_f = move_time * fps;
+	var specblockrate = 10; // 1 / n rate for spec blocks (bigger -> less chance)
 	var maxtetrtime = 5; //seconds -- time a tetromino is under control
 	var maxtetrtime_f = maxtetrtime * fps;
 
@@ -182,12 +208,25 @@ function sketch(p) {
 		this.x = x;
 		this.y = y;
 		this.type = type; //0-6 -> Tetrominos/normal colors, >6 -> special blocks
-		//Special Block numbers:
-		//TODO
-		this.last_move_done = true;
 
-		var types = [LBLUE, BLUE, ORANGE, YELLOW, GREEN, PURPLE, RED];
+		this.spawnframe = p.frameCount; //birth frame -> for duration etc
+		this.last_move_done = true; //is still moving or lying still?
+
 		var step = 256/unitsz;
+
+		//decide on which special block type to take
+		//(prevent locked types, consider the good/bad bias)
+		function calc_special_block_type() {
+			if (p.int(p.random(0,2))==0)
+				return p.int(p.random(100,106));
+			else
+				return p.int(p.random(200,203));
+		}
+
+		//random mutation -> normal block gets special block
+		if (p.int(p.random(0,specblockrate+1))==0) {
+			this.type = calc_special_block_type();
+		}
 
 		// x,y are optional offset coordinates (if the stored x and y are relative)
 		// pre = true -> draw in preview window with relative coords, else undefined or false
@@ -202,13 +241,16 @@ function sketch(p) {
 			if (typeof pre=='undefined' || pre==null)
 				pre=false;
 
+			var clr=p.color(127, 20, 20); //whatever? brown
 			// set block color depending on its type
-			if (this.type > 6 || this.type < 0)
-				var clr = BLACK;
-			else
-				var clr = types[this.type];
+			if (this.type <= 6 && this.type >= 0)
+				clr = colors[this.type];
+			else if (this.type >= 100 && this.type < 200)
+				clr = WHITE;
+			else if (this.type >= 200 && this.type < 300)
+				clr = BLACK;
 
-			// render the block
+			// render the block color
 			p.noFill();
 			p.strokeWeight(1);
 			for(var i=0; i<unitsz/2; i++) {
@@ -217,6 +259,16 @@ function sketch(p) {
 					p.rect(cx*unitsz+i, cy*unitsz+i, unitsz-2*i-1, unitsz-2*i-1);
 				else if (pre==true)	//render in preview
 					p.rect(previewx+cx*unitsz+i+2*unitsz, previewy+cy*unitsz+i+2*unitsz, unitsz-2*i-1, unitsz-2*i-1);
+			}
+
+			// for special blocks - render a letter on them
+			if (this.type > 6 && !pre) {
+				p.textFont(p.loadFont("Courier New", unitsz*0.9));
+				if (clr == BLACK)
+					p.fill(255,255,255); //real white font
+				else
+					p.fill(BLACK);
+				p.text("w", cx*unitsz, (cy+1)*unitsz);
 			}
 		}
 
@@ -270,43 +322,43 @@ function sketch(p) {
 		this.blocks = new Array();
 
 		switch (type) {
-		case 0: //I
+		case TETR_I:
 			this.blocks.push(new Block(-1,-2, type));
 			this.blocks.push(new Block(-1,-1, type));
 			this.blocks.push(new Block(-1,0, type));
 			this.blocks.push(new Block(-1,1, type));
 			break;
-		case 1: //J
+		case TETR_J:
 			this.blocks.push(new Block(0,-2, type));
 			this.blocks.push(new Block(0,-1, type));
 			this.blocks.push(new Block(0,0, type));
 			this.blocks.push(new Block(-1,0, type));
 			break;
-		case 2: //L
+		case TETR_L:
 			this.blocks.push(new Block(-1,-2, type));
 			this.blocks.push(new Block(-1,-1, type));
 			this.blocks.push(new Block(-1,0, type));
 			this.blocks.push(new Block(0,0, type));
 			break;
-		case 3: //O
+		case TETR_O:
 			this.blocks.push(new Block(-1,-1, type));
 			this.blocks.push(new Block(-1,0, type));
 			this.blocks.push(new Block(0,-1, type));
 			this.blocks.push(new Block(0,0, type));
 			break;
-		case 4: //S
+		case TETR_S:
 			this.blocks.push(new Block(-2,0, type));
 			this.blocks.push(new Block(-1,0, type));
 			this.blocks.push(new Block(-1,-1, type));
 			this.blocks.push(new Block(0,-1, type));
 			break;
-		case 5: //T
+		case TETR_T:
 			this.blocks.push(new Block(-2,-1, type));
 			this.blocks.push(new Block(-1,-1, type));
 			this.blocks.push(new Block(0,-1, type));
 			this.blocks.push(new Block(-1,0, type));
 			break;
-		case 6: //Z
+		case TETR_Z:
 			this.blocks.push(new Block(-2,-1, type));
 			this.blocks.push(new Block(-1,0, type));
 			this.blocks.push(new Block(-1,-1, type));
@@ -547,7 +599,13 @@ function sketch(p) {
 			if (duration != null)
 				seconds = duration;
 			for (var i = 0; i < blocks.length; i++) {
-				effects.push(new Effect(blocks[i].x, blocks[i].y, colors[blocks[i].type], seconds));
+				var clr = colors[blocks[i].type];
+				if (blocks[i].type > 6)
+					if (blocks[i].type >= 100 && blocks[i].type < 200)
+						clr = WHITE;
+					else if (blocks[i].type >= 200 && blocks[i].type < 300)
+						clr = BLACK;
+				effects.push(new Effect(blocks[i].x, blocks[i].y, clr, seconds));
 			}		
 		}
 		
@@ -609,11 +667,23 @@ function sketch(p) {
 		for(var i=0; i<currtetr.blocks.length; i++) {
 			var x = currtetr.x+currtetr.blocks[i].x;
 			var y = currtetr.y+currtetr.blocks[i].y;
-			var type = currtetr.type;
-			worldblocks.push(new Block(x,y,type));
+			var clone = new Block(x,y,currtetr.blocks[i].type);
+			clone.type = currtetr.blocks[i].type; //prevent that random mutation on dropping
+			worldblocks.push(clone);
 		}
 
 		next_tetromino();
+	}
+
+	//checks and removes aged blocks
+	function remove_old_special_blocks() {
+		//TODO: check world blocks,
+		//remove the special blocks with duration
+		//that are too old
+		//DEBUG: (removes all LBLUE blocks after 3 sec in world)
+	//	for(var i=0; i<worldblocks.length; i++)
+	//		if (worldblocks[i].type==0 && worldblocks[i].spawnframe+3*fps<=p.frameCount)
+	//			visrenderer.push_effect(worldblocks.splice(i,1), 1);
 	}
 	
 	//Calculate worldmatr from worldblocks
@@ -633,170 +703,66 @@ function sketch(p) {
 	}
 
 	// check if there is a finished row or square (of a single color + any joker/special blocks)
-	// TODO: square detection, fix bug with 4x4 etc.!!!
-	function chk_rows_and_squares() {
-		var colors = [LBLUE, BLUE, ORANGE, YELLOW, GREEN, PURPLE, RED]; /* for message text color */
-
-		/***** ROW + COL DETECTION *****/
-		var rowcount=0;
-		
-		if (worldmatr == null)
-			return false; //not possible at the moment
-		
-		//get rows, mark blocks for deletion
-		for (var iy=0; iy<fieldsz; iy++) {
-			var isrow = true;
-			var currcolor = null;
-			for(var i=0; i<fieldsz; i++) {
-				if (worldmatr[i][iy] == null 
-						|| (currcolor!=null && worldmatr[i][iy].type<=6 && worldmatr[i][iy].type != currcolor)) {
-					isrow = false;
-					break;
-				} else if (currcolor == null)
-					currcolor = worldmatr[i][iy].type;
-			}
-			if (isrow) {
-				rowcount++;
-				for(var i=0; i<fieldsz; i++)
-					worldmatr[i][iy].to_remove = true;
-			}
-		}
-
-		//get cols, mark blocks for deletion
-		for (var ix=0; ix<fieldsz; ix++) {
-			var iscol = true;
-			var currcolor = null;
-			for(var i=0; i<fieldsz; i++) {
-				if (worldmatr[ix][i] == null
-						|| (currcolor!=null && worldmatr[ix][i].type<=6 && worldmatr[ix][i].type != currcolor)) {
-					iscol = false;
-					break;
-				} else if (currcolor == null)
-					currcolor = worldmatr[ix][i].type;
-			}
-			if (iscol) {
-				rowcount++;
-				for(var i=0; i<fieldsz; i++)
-					worldmatr[ix][i].to_remove = true;
-			}
-		}
-		//update score/stats + show message if there were rows
-		if (rowcount > 0) {
-			blocksremoved += rowcount*fieldsz;
-			var addscore = 10 * rowcount*rowcount;
-			score += addscore;
-
-			var txt = "Row! (+"+addscore.toString()+")";
-			if (rowcount > 1)
-				txt = rowcount.toString()+"x "+txt;
-			msgrenderer.push_msg(txt,20,colors[rowcount-1],2+0.2*rowcount);
-			//play sound
-			if (rowcount == 1)
-				playsound("row");
-			else if (rowcount == 2)
-				playsound("row2");
-			else if (rowcount > 2)
-				playsound("row3");
-		}
-
-		/***** SQUARE DETECTION *****/
-
+	function chk_squares() {
 		//sort world blocks -> important to find the big (4x4 etc) blocks FIRST
 		//sorts the blocks in a way that lower coordinates come first
-		worldblocks.sort(function(a,b) {
-			return (a.x+a.y) - (b.x+b.y);
-		})
+		//worldblocks.sort(function(a,b) {
+		//	return (a.x+a.y) - (b.x+b.y);
+		//})
 
-		//look for 3x3 squares, then try to expand to sides (a 3x3 square might be something bigger like 4x4)
-		for(var i=0; i<worldblocks.length; i++) {
-			var ix=worldblocks[i].x;
-			var iy=worldblocks[i].y;
+		for(var side=7; side >= 3; side--) { //check first square size 7, then down to 3...
+			//check every world block...
+			for(var i=0; i<worldblocks.length; i++) {
+				var ix=worldblocks[i].x;
+				var iy=worldblocks[i].y;
 
-			//dont even look at the surrounding of that block if it doesn't meet the conditions
-			if (worldmatr[ix][iy]==null)
-				continue;
-			if (ix>fieldsz-3 || iy>fieldsz-3) //cant be a square from here... out of game field
-				continue;
-			if (worldblocks[i].last_move_done==true) //that block was falling down... doesn't count
-				continue;
-			if (worldblocks[i].to_remove==true) //is already part of a square
-				continue;
+				//dont even look at the surrounding of that block if it doesn't meet the conditions
+				if (ix>fieldsz-side || iy>fieldsz-side) //cant be a square from here... out of game field
+					continue;
+				if (worldblocks[i].last_move_done==true) //that block was falling down... doesn't count
+					continue;
+				if (worldblocks[i].to_remove==true) //is already part of a square
+					continue;
 
-			else { //look for a 3x3 square growing from this block down and right
 				var clr=worldblocks[i].type;
+				//if its a joker block, take the next normal color...
+				for(var y=0; y<side && clr>6; y++)
+					for(var x=0; x<side && clr>6; x++)
+						if (worldmatr[ix+x][iy+y] != null)
+							clr = worldmatr[ix+x][iy+y].type;
+
 				var square = true;
 
-				for(var y=0; y<3; y++) {
-					for(var x=0; x<3; x++) {
+				//look for a square growing from this block down and right
+				for(var y=0; y<side; y++) {
+					for(var x=0; x<side; x++) {
 						if (worldmatr[ix+x][iy+y]==null || worldmatr[ix+x][iy+y].to_remove==true
-								|| (worldmatr[ix+x][iy+y].type<=6 && worldmatr[ix+x][iy+y].type != clr)) {
+								|| (worldmatr[ix+x][iy+y].type<=6 && clr<=6 && worldmatr[ix+x][iy+y].type != clr)) {
 							square = false;
 							break;
 						}
 					}
-					if (square==false) //saves time
-						break;
-				}
+				}	
 
 				if (square) {
-					var squareside = 3; //minimal square
-
-					//check whether the square is bigger...
-					
-					var onemore=true;
-					do {
-						onemore=true;
-						for(var i=0; i<=squareside; i++) {
-							var x = ix+i;
-							var y = iy+squareside;
-							if (x>=fieldsz || y>=fieldsz) { //out of bound?
-								onemore=false;
-								break;
-							}
-
-							if (worldmatr[x][y]==null || worldmatr[x][y].to_remove==true
-									|| (worldmatr[x][y].type<=6 && worldmatr[x][y].type != clr)) {
-								onemore=false;
-								break;
-							}
-							
-							x=ix+squareside;
-							y=iy+i;
-							if (x>=fieldsz || y>=fieldsz) { //out of bound?
-								onemore=false;
-								break;
-							}
-
-							if (worldmatr[x][y]==null || worldmatr[x][y].to_remove==true
-									|| (worldmatr[x][y].type<=6 && worldmatr[x][y].type != clr)) {
-								onemore=false;
-								break;
-							}
-						}
-
-						if(onemore)
-							squareside++;
-					} while(onemore==true);
-					
-
 					//set blocks for removal
-					for(var y=0; y<squareside; y++)
-						for(var x=0; x<squareside; x++) {
+					for(var y=0; y<side; y++)
+						for(var x=0; x<side; x++) {
 							worldmatr[ix+x][iy+y].to_remove = true;
 						}
 					
 					//update score/stats + show message
-					blocksremoved += squareside*squareside;
-					var addscore = squareside*squareside * (squareside-2)*(squareside-2);
+					blocksremoved += side*side;
+					var addscore = side*side * (side-2)*(side-2);
 					score += addscore;
-					msgrenderer.push_msg((squareside.toString()+"x"+squareside.toString()+" Square! (+"+addscore.toString()+")"),20,colors[squareside-3],2+0.2*(squareside-3));
+					msgrenderer.push_msg((side.toString()+"x"+side.toString()+" Square! (+"+addscore.toString()+")"),20,colors[side-3],2+0.2*(side-3));
 
 					//play sound
-					if (squareside == 3)
+					if (side == 3)
 						play_sound("sq3");
-					else if (squareside == 4)
+					else if (side == 4)
 						play_sound("sq4");
-					else if (squareside >= 5)
+					else if (side >= 5)
 						play_sound("sq5");
 				}
 			}
@@ -1120,6 +1086,10 @@ function sketch(p) {
 				chk_rows_and_squares(); //check rows/squares -> remove, add score etc.
 				chk_gameover(); //check whether there are foreign blocks in spawn zone -> lose
 			}
+
+			remove_old_special_blocks(); //remove blocks with duration which are too old
+			chk_squares(); //check rows/squares -> remove, add score etc.
+			chk_gameover(); //check whether there are foreign blocks in spawn zone -> lose
 		} else {
 			if (!finished)
 				finish();

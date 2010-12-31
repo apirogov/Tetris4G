@@ -1,0 +1,28 @@
+Special blocks are irregular "mutant" blocks instead of normal
+color blocks in a tetromino and they disappear over time
+(-> less time to get a good one and no force to get bad ones)
+(some bad ones NEED to be taken to prevent an effect...)
+
+===============
+
+Good:
+B_JOKER: simple joker block (matches all colors) (permanent)
+B_SPECJOKER: special joker block (just for e.g. square 5x5 or row etc) (permanent)
+
+Medium time (3 minutes):
+B_STARTMISSION: Start Mission block (enables a quest)
+			Quest rewards can be score or long buffs or unlocked spec blocks
+
+Short time (1 minute):
+B_REMOVEROW: Row-away block (removes a row from the wall with highest tower)
+B_DBLSCORE: Score*2 for 1 minute
+B_DBLMVTIME: Movetime*2 for 1 minute
+
+When >50% of field full, chance for:
+B_NUKE: Nuke Block (all blocks get one color -> baaam chain reaction)
+
+================
+Bad (all 1 minute):
+B_HALFMVTIME: Movetime/2 for 1 minute
+B_RNDSPAWN:  spawn-block (Spawns 3-7 new random blocks to the world)
+B_NEGSCORE: score decreased instead of increased for a formation with that block
