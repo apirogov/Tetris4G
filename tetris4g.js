@@ -131,6 +131,7 @@ function sketch(p) {
 	var visrenderer = null; //object that handles effects of vanishing blocks
 	
 	var paused = false; //game is paused if set 'true'
+	var pause_frame = 0;
 	var game_over = false; //stops game if set 'true'
 	var finished = false; // true=everything done, game can be left
 	var musicon = false; // true = play soundtrack in loop
@@ -871,11 +872,46 @@ function sketch(p) {
 			lock_direction = new_lock_direction;
 	}
 	
-	//returns 'true' if 'block' is part of a "tower of blocks" from the LEFT
-	function check_tower(block) {
-		for (var x = block.x; x > 0; x--) { //also checks if block is really part of wordblocks ;)
+	//returns 'true' if 'block' is part of a "tower of blocks" from the LEFT in 'worldmatr'
+	function check_tower_left(block) {
+		for (var x = block.x; x >= 0; x--) { //also checks if block is really part of 'worldmatr' ;)
 			if (worldmatr[x][block.y] == null)
 				return false;
+			else
+				visrenderer.push_effect(new Block(x, block.y, 0), 0.5);
+		}
+		return true;
+	}
+	
+	//returns 'true' if 'block' is part of a "tower of blocks" from the RIGHT in 'worldmatr'
+	function check_tower_right(block) {
+		for (var x = block.x; x < fieldsz; x++) { //also checks if block is really part of 'worldmatr' ;)
+			if (worldmatr[x][block.y] == null)
+				return false;
+			else
+				visrenderer.push_effect(new Block(x, block.y, 0), 0.5);
+		}
+		return true;
+	}
+	
+	//returns 'true' if 'block' is part of a "tower of blocks" from the TOP in 'worldmatr'
+	function check_tower_up(block) {
+		for (var y = block.y; y >= 0; y--) { //also checks if block is really part of 'worldmatr' ;)
+			if (worldmatr[block.x][y] == null)
+				return false;
+			else
+				visrenderer.push_effect(new Block(block.x, y, 6), 0.5);
+		}
+		return true;
+	}
+	
+	//returns 'true' if 'block' is part of a "tower of blocks" from the BOTTOM in 'worldmatr'
+	function check_tower_down(block) {
+		for (var y = block.y; y < fieldsz; y++) { //also checks if block is really part of 'worldmatr' ;)
+			if (worldmatr[block.x][y] == null)
+				return false;
+			else
+				visrenderer.push_effect(new Block(block.x, y, 6), 0.5);
 		}
 		return true;
 	}
@@ -883,17 +919,88 @@ function sketch(p) {
 	// sets all 'gravln_[...]' according to constitution of 'worldblocks'
 	//TODO: turn all world blocks anti clock wise --> same algo can be applied to get all gravlines
 	function update_gravlines() {
-		var matr = worldmatr;
-		//var cand = new Array(); //candidates
-		var span = 0; //distance between new gravline and "ground"
-		
-		
-		
-		
-		// for (var i = 0; i < cand.length; i++) {
-			
-		// }
+		var found = false;
 	
+		//find 'gravln_left'
+		for (var x = fieldsz/2 - 1; x >= 0; x--) {
+			for (var y = 0; y < fieldsz; y++) {
+				if (worldmatr[x][y] != null) {
+					if (check_tower_left(worldmatr[x][y]) == true) {
+						gravln_left = x; //highest tower found
+						found = true;
+						break;
+					}
+				}
+			}
+			if (found == true)
+				break;
+		}
+		if (found == true)
+			found = false;
+		else
+			gravln_left = -1;
+		
+		//find 'gravln_right'
+		for (var x = fieldsz/2; x < fieldsz; x++) {
+			for (var y = 0; y < fieldsz; y++) {
+				if (worldmatr[x][y] != null) {
+					if (check_tower_right(worldmatr[x][y]) == true) {
+						gravln_right = x; //highest tower found
+						found = true;
+						break;
+					}
+				}
+			}
+			if (found == true)
+				break;
+		}
+		if (found == true)
+			found = false;
+		else
+			gravln_right = fieldsz;
+			
+		//find 'gravln_high'
+		for (var y = fieldsz/2 - 1; y >= 0; y--) {
+			for (var x = 0; x < fieldsz; x++) {
+				if (worldmatr[x][y] != null) {
+					if (check_tower_up(worldmatr[x][y]) == true) {
+						gravln_high = y; //highest tower found
+						found = true;
+						break;
+					}
+				}
+			}
+			if (found == true)
+				break;
+		}
+		if (found == true)
+			found = false;
+		else
+			gravln_high = -1;
+		
+		//find 'gravln_low'
+		for (var y = fieldsz/2; y < fieldsz; y++) {
+			for (var x = 0; x < fieldsz; x++) {
+				if (worldmatr[x][y] != null) {
+					if (check_tower_down(worldmatr[x][y]) == true) {
+						gravln_low = y; //highest tower found
+						found = true;
+						break;
+					}
+				}
+			}
+			if (found == true)
+				break;
+		}
+		if (found == true)
+			found = false;
+		else
+			gravln_low = fieldsz;
+		
+		//check for "game over" (if a gravline hits the middle)
+		if (gravln_left >= fieldsz/2 || gravln_right <= fieldsz/2 || gravln_high >= fieldsz/2 || gravln_low <= fieldsz/2) {
+			game_over = true;
+		}
 	}
 	
 	//Checks for collision with spawn zone -> lose
@@ -904,6 +1011,26 @@ function sketch(p) {
 						game_over = true;
 			}
 		}
+	}
+	
+	function pause() {
+		paused = true;
+		pause_frame = p.frameCount;
+		msgrenderer.push_msg("PAUSED", 50, RED, 0);
+		$("#help").slideDown(600);
+	}
+	
+	function unpause() {
+		msgrenderer.shift_msg();
+		$("#help").slideUp(600);
+		
+		var add = p.frameCount - pause_frame;
+		
+		//add pause frames to all "start_frames"
+		currtetr.spawnframe += add;
+		
+		
+		paused = false;
 	}
 	
 	function finish() {
@@ -942,10 +1069,10 @@ function sketch(p) {
 		next_tetromino();
 		
 		//Init world gravity lines
-		gravln_left = -1   +5;
-		gravln_right = fieldsz   -5;
-		gravln_high = -1   +5; //DEBUG insertion
-		gravln_low = fieldsz   -5; //DEBUG insertion
+		gravln_left = -1;
+		gravln_right = fieldsz;
+		gravln_high = -1; //DEBUG insertion
+		gravln_low = fieldsz; //DEBUG insertion
 		
 		//Init key_force
 		key_force = (fieldsz/10); //TODO need to convert to int? float should do it as well regarding that the greatest force decides movement...
@@ -974,88 +1101,103 @@ function sketch(p) {
 		/************* game logic ************/
 		//TODO: missions etc...
 		
-		if (!game_over && !paused) {
-			update_worldmatr(); //recalculate blocks in world matrix
-			update_gravlines();
+		if (!game_over) {
+			if (!paused) {
+				update_worldmatr(); //recalculate blocks in world matrix
+				update_gravlines(); //recalculate all 4 grav lines
 
-			if (p.frameCount%move_time_f == 0) {
-				for (var i=0; i<worldblocks.length; i++) //apply gravity to world
-					apply_gravity(worldblocks[i]);
-				apply_gravity(currtetr);
+				if (p.frameCount%move_time_f == 0) {
+					for (var i=0; i<worldblocks.length; i++) //apply gravity to world
+						apply_gravity(worldblocks[i]);
+					apply_gravity(currtetr);
+				}
+
+				if (p.frameCount > currtetr.spawnframe+maxtetrtime_f) { //check the tetromino life state
+					add_tetr_to_world();
+					play_sound("tetr_timeout");
+				}
+
+				chk_rows_and_squares(); //check rows/squares -> remove, add score etc.
+				chk_gameover(); //check whether there are foreign blocks in spawn zone -> lose
 			}
-
-			if (p.frameCount > currtetr.spawnframe+maxtetrtime_f) { //check the tetromino life state
-				add_tetr_to_world();
-				play_sound("tetr_timeout");
-			}
-
-			chk_rows_and_squares(); //check rows/squares -> remove, add score etc.
-			chk_gameover(); //check whether there are foreign blocks in spawn zone -> lose
 		} else {
-			if (!finished) {
+			if (!finished)
 				finish();
-			}
 		}
 
 		
 		/*************  rendering  *************/
-		// game background
-		p.image(backgroundimg);
+		if (!game_over && !paused) {
+			// game background
+			p.image(backgroundimg);
 
-		// Preview window
-		p.stroke(BLACK);
-		p.strokeWeight(3);
-		p.fill(80);
-		p.rect(previewx-3,previewy-3,unitsz*4+6,unitsz*4+6);
-		p.strokeWeight(1);
+			// Preview window
+			p.stroke(BLACK);
+			p.strokeWeight(3);
+			p.fill(80);
+			p.rect(previewx-3,previewy-3,unitsz*4+6,unitsz*4+6);
+			p.strokeWeight(1);
 
-		// render gravity zones
-		//Diagonal lines
-		p.stroke(0,0,0,127);
-		p.line(gravln_left*unitsz+unitsz/2,gravln_high*unitsz+unitsz/2,
-				gravln_right*unitsz+unitsz/2,gravln_low*unitsz+unitsz/2);
-		p.line(gravln_left*unitsz+unitsz/2,gravln_low*unitsz+unitsz/2,
-				gravln_right*unitsz+unitsz/2,gravln_high*unitsz+unitsz/2);
-		//Gravity force lines
-		p.stroke(255,0,0,127);
-		p.line(gravln_left*unitsz+unitsz/2, 0, gravln_left*unitsz+unitsz/2, fieldszpx);
-		p.line(gravln_right*unitsz+unitsz/2, 0, gravln_right*unitsz+unitsz/2, fieldszpx);
-		p.line(0, gravln_high*unitsz+unitsz/2, fieldszpx, gravln_high*unitsz+unitsz/2);
-		p.line(0, gravln_low*unitsz+unitsz/2, fieldszpx, gravln_low*unitsz+unitsz/2);
-		
+			// render gravity zones
+			//Diagonal lines
+			p.stroke(0,0,0,127);
+			p.line(gravln_left*unitsz+unitsz/2,gravln_high*unitsz+unitsz/2,
+					gravln_right*unitsz+unitsz/2,gravln_low*unitsz+unitsz/2);
+			p.line(gravln_left*unitsz+unitsz/2,gravln_low*unitsz+unitsz/2,
+					gravln_right*unitsz+unitsz/2,gravln_high*unitsz+unitsz/2);
+			//Gravity force lines
+			p.stroke(255,0,0,127);
+			p.line(gravln_left*unitsz+unitsz/2, 0, gravln_left*unitsz+unitsz/2, fieldszpx);
+			p.line(gravln_right*unitsz+unitsz/2, 0, gravln_right*unitsz+unitsz/2, fieldszpx);
+			p.line(0, gravln_high*unitsz+unitsz/2, fieldszpx, gravln_high*unitsz+unitsz/2);
+			p.line(0, gravln_low*unitsz+unitsz/2, fieldszpx, gravln_low*unitsz+unitsz/2);
+			
 
-		// render spawn zone
-		p.noFill();
-		p.stroke(255,0,0,127);
-		p.rect((spawnx-2)*unitsz,(spawny-2)*unitsz,4*unitsz,4*unitsz)
+			// render spawn zone
+			p.noFill();
+			p.stroke(255,0,0,127);
+			p.rect((spawnx-2)*unitsz,(spawny-2)*unitsz,4*unitsz,4*unitsz)
 
-		// render score and stuffz
-		p.textSize(20);
-		p.textFont(txtfont);
-		if (!game_over) { //show rest time if game is running
+			// render score and stuffz
+			p.textSize(20);
+			p.textFont(txtfont);
+			if (!game_over && !paused) { //show rest time if game is running
+				p.fill(255);
+				p.text("Time:",520,250);
+				p.fill(0);
+				p.text(p.int(((maxtetrtime_f-(p.frameCount-currtetr.spawnframe))/fps)).toString(),520,280);
+			}
 			p.fill(255);
-			p.text("Time:",520,250);
+			p.text("Removed:",520,340);
 			p.fill(0);
-			p.text(p.int(((maxtetrtime_f-(p.frameCount-currtetr.spawnframe))/fps)).toString(),520,280);
+			p.text(blocksremoved.toString(),520,370);
+			p.fill(255);
+			p.text("Score:",520,420);
+			p.fill(0);
+			p.text(score.toString(),520,450);
+			
+			//draw world & tetrominoes
+			for(var i=0; i<worldblocks.length; i++) {
+				worldblocks[i].draw();
+			}
+			currtetr.draw();
+			nexttetr.draw_preview();
 		}
-		p.fill(255);
-		p.text("Removed:",520,340);
-		p.fill(0);
-		p.text(blocksremoved.toString(),520,370);
-		p.fill(255);
-		p.text("Score:",520,420);
-		p.fill(0);
-		p.text(score.toString(),520,450);
-		
-		//draw world & tetrominoes
-		for(var i=0; i<worldblocks.length; i++) {
-			worldblocks[i].draw();
-		}
-		currtetr.draw();
-		nexttetr.draw_preview();
 
 		msgrenderer.render(); //render text messages
 		visrenderer.render(); //render visual effects
+		
+		//DEBUG
+		// p.line((fieldsz/2)*unitsz, 0, (fieldsz/2)*unitsz, fieldszpx);
+		// p.stroke(BLUE);
+		// p.line((fieldsz - fieldsz/2)*unitsz, 0, (fieldsz - fieldsz/2)*unitsz, fieldszpx);
+		// visrenderer.push_effect(new Block(fieldsz/2 - 1, 0, 2));
+		
+		// if (check_tower(new Block(3, 7, 2), worldmatr) == true) {
+			// //msgrenderer.push_msg("success...", 30, GREEN, 1);
+		// }
+			
+
 	}
 
 	p.keyPressed = function() {
@@ -1069,14 +1211,11 @@ function sketch(p) {
 		
 		//pause game
 		if (p.keyCode == 80) { //"p"
-			paused = !paused;
 			if (paused) {
-				msgrenderer.push_msg("PAUSED", 50, RED, 0);
-				$("#help").slideDown(600);
+				unpause();
 			}
 			else {
-				msgrenderer.shift_msg();
-				$("#help").slideUp(600);
+				pause();
 			}
 		}
 		
