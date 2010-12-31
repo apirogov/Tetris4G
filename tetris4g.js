@@ -843,8 +843,6 @@ function sketch(p) {
 		for (var x = block.x; x >= 0; x--) { //also checks if block is really part of 'worldmatr' ;)
 			if (worldmatr[x][block.y] == null)
 				return false;
-			else
-				visrenderer.push_effect(new Block(x, block.y, 0), 0.5);
 		}
 		return true;
 	}
@@ -854,8 +852,6 @@ function sketch(p) {
 		for (var x = block.x; x < fieldsz; x++) { //also checks if block is really part of 'worldmatr' ;)
 			if (worldmatr[x][block.y] == null)
 				return false;
-			else
-				visrenderer.push_effect(new Block(x, block.y, 0), 0.5);
 		}
 		return true;
 	}
@@ -865,8 +861,6 @@ function sketch(p) {
 		for (var y = block.y; y >= 0; y--) { //also checks if block is really part of 'worldmatr' ;)
 			if (worldmatr[block.x][y] == null)
 				return false;
-			else
-				visrenderer.push_effect(new Block(block.x, y, 6), 0.5);
 		}
 		return true;
 	}
@@ -876,14 +870,11 @@ function sketch(p) {
 		for (var y = block.y; y < fieldsz; y++) { //also checks if block is really part of 'worldmatr' ;)
 			if (worldmatr[block.x][y] == null)
 				return false;
-			else
-				visrenderer.push_effect(new Block(block.x, y, 6), 0.5);
 		}
 		return true;
 	}
 	
 	// sets all 'gravln_[...]' according to constitution of 'worldblocks'
-	//TODO: turn all world blocks anti clock wise --> same algo can be applied to get all gravlines
 	function update_gravlines() {
 		var found = false;
 	
@@ -1041,7 +1032,7 @@ function sketch(p) {
 		gravln_low = fieldsz; //DEBUG insertion
 		
 		//Init key_force
-		key_force = (fieldsz/10); //TODO need to convert to int? float should do it as well regarding that the greatest force decides movement...
+		key_force = (fieldsz/10);
 	
 		lock_direction = -1;
 	}
@@ -1083,7 +1074,7 @@ function sketch(p) {
 					play_sound("tetr_timeout");
 				}
 
-				chk_rows_and_squares(); //check rows/squares -> remove, add score etc.
+				chk_squares(); //check rows/squares -> remove, add score etc.
 				chk_gameover(); //check whether there are foreign blocks in spawn zone -> lose
 			}
 
@@ -1156,18 +1147,6 @@ function sketch(p) {
 
 		msgrenderer.render(); //render text messages
 		visrenderer.render(); //render visual effects
-		
-		//DEBUG
-		// p.line((fieldsz/2)*unitsz, 0, (fieldsz/2)*unitsz, fieldszpx);
-		// p.stroke(BLUE);
-		// p.line((fieldsz - fieldsz/2)*unitsz, 0, (fieldsz - fieldsz/2)*unitsz, fieldszpx);
-		// visrenderer.push_effect(new Block(fieldsz/2 - 1, 0, 2));
-		
-		// if (check_tower(new Block(3, 7, 2), worldmatr) == true) {
-			// //msgrenderer.push_msg("success...", 30, GREEN, 1);
-		// }
-			
-
 	}
 
 	p.keyPressed = function() {
