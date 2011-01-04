@@ -686,7 +686,7 @@ function sketch(p) {
 			var type = worldblocks[i].type;
 			if (typeof(lifetime[type])!='undefined') {
 				if (p.frameCount >= worldblocks[i].spawnframe+lifetime[type]*fps)
-					visrenderer.push_effect(worldblocks.splice(i,1), 1);
+					visrenderer.push_effect(worldblocks.splice(i,1)[0]);
 			}
 		}
 	}
