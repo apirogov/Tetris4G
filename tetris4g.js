@@ -121,6 +121,8 @@ function sketch(p) {
 	var colors = [LBLUE, BLUE, ORANGE, YELLOW, GREEN, PURPLE, RED, WHITE, BLACK]; //index = type, value = color
 	
 	// ******************** global type constants **********
+	var lifetime = new Array(); //duration the block lives in seconds (until it disappears)
+	var specpics = new Array(); //will be loaded on demand
 	// normal tetrominos
 	var TETR_I			= 0;
 	var TETR_J			= 1;
@@ -130,16 +132,16 @@ function sketch(p) {
 	var TETR_T			= 5;
 	var TETR_Z			= 6;
 	// normal goodies
-	var B_STRTMISSION	= 100;
+	var B_STRTMISSION	= 100;	lifetime[100] = 20;
 	var B_JOKER			= 101;
 	var B_SPECJOKER		= 102;
-	var B_REMOVEROW		= 103;
-	var B_DBLSCORE		= 104;
-	var B_DBLMVTIME		= 105;
+	var B_REMOVEROW		= 103;	lifetime[103] = 20;
+	var B_DBLSCORE		= 104;	lifetime[104] = 20;
+	var B_DBLMVTIME		= 105;	lifetime[105] = 20;
 	// normal baddies
-	var B_HALFMVTIME	= 200;
-	var B_NEGSCORE		= 201;
-	var B_RNDSPAWN		= 202;
+	var B_HALFMVTIME	= 200;	lifetime[200] = 10;
+	var B_NEGSCORE		= 201;	lifetime[201] = 10;
+	var B_RNDSPAWN		= 202;	lifetime[202] = 10;
 	// mission rewards (need to be unlocked)
 	var B_NUKE			= 300;
 
@@ -261,14 +263,15 @@ function sketch(p) {
 					p.rect(previewx+cx*unitsz+i+2*unitsz, previewy+cy*unitsz+i+2*unitsz, unitsz-2*i-1, unitsz-2*i-1);
 			}
 
-			// for special blocks - render a letter on them
-			if (this.type > 6 && !pre) {
-				p.textFont(p.loadFont("Courier New", unitsz*0.9));
-				if (clr == BLACK)
-					p.fill(255,255,255); //real white font
+			// for special blocks - render their pic on them
+			if (this.type > 6) {
+				if (typeof specpics[this.type] == 'undefined') //pic is not loaded - load into cache
+					specpics[this.type] = p.loadImage("./gfx/"+this.type.toString()+".png");
+				//draw it
+				if (!pre)
+					p.image(specpics[this.type], cx*unitsz, cy*unitsz, unitsz, unitsz);
 				else
-					p.fill(BLACK);
-				p.text("w", cx*unitsz, (cy+1)*unitsz);
+					p.image(specpics[this.type], previewx+cx*unitsz+2*unitsz, previewy+cy*unitsz+2*unitsz, unitsz, unitsz);
 			}
 		}
 
@@ -677,13 +680,15 @@ function sketch(p) {
 
 	//checks and removes aged blocks
 	function remove_old_special_blocks() {
-		//TODO: check world blocks,
-		//remove the special blocks with duration
-		//that are too old
-		//DEBUG: (removes all LBLUE blocks after 3 sec in world)
-	//	for(var i=0; i<worldblocks.length; i++)
-	//		if (worldblocks[i].type==0 && worldblocks[i].spawnframe+3*fps<=p.frameCount)
-	//			visrenderer.push_effect(worldblocks.splice(i,1), 1);
+		//remove the special blocks with duration that are too old
+		//TODO: start effect of bad ones which activate on timeout
+		for(var i=0; i<worldblocks.length; i++) {
+			var type = worldblocks[i].type;
+			if (typeof(lifetime[type])!='undefined') {
+				if (p.frameCount >= worldblocks[i].spawnframe+lifetime[type]*fps)
+					visrenderer.push_effect(worldblocks.splice(i,1), 1);
+			}
+		}
 	}
 	
 	//Calculate worldmatr from worldblocks
@@ -704,12 +709,6 @@ function sketch(p) {
 
 	// check if there is a finished row or square (of a single color + any joker/special blocks)
 	function chk_squares() {
-		//sort world blocks -> important to find the big (4x4 etc) blocks FIRST
-		//sorts the blocks in a way that lower coordinates come first
-		//worldblocks.sort(function(a,b) {
-		//	return (a.x+a.y) - (b.x+b.y);
-		//})
-
 		for(var side=7; side >= 3; side--) { //check first square size 7, then down to 3...
 			//check every world block...
 			for(var i=0; i<worldblocks.length; i++) {
