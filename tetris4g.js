@@ -707,64 +707,78 @@ function sketch(p) {
 		}
 	}
 
-	// check if there is a finished row or square (of a single color + any joker/special blocks)
-	function chk_squares() {
-		for(var side=7; side >= 3; side--) { //check first square size 7, then down to 3...
-			//check every world block...
-			for(var i=0; i<worldblocks.length; i++) {
-				var ix=worldblocks[i].x;
-				var iy=worldblocks[i].y;
+	// check if there is a finished rectangle (of a single color + any joker/special blocks)
+	function chk_rects() {
+		var sizes = [[7,7],[6,7],[6,6],[5,7],[5,6],[4,7],[5,5],
+					[4,6],[3,7],[4,5],[3,6],[4,4],[3,5],[3,4],[3,3]]; //sorted by area size descending
+		for(var j=0; j<sizes.length; j++) {
+			var sidex = sizes[j][0];
+			var sidey = sizes[j][1];
+			
+			var reversecheck=false;
 
-				//dont even look at the surrounding of that block if it doesn't meet the conditions
-				if (ix>fieldsz-side || iy>fieldsz-side) //cant be a square from here... out of game field
-					continue;
-				if (worldblocks[i].last_move_done==true) //that block was falling down... doesn't count
-					continue;
-				if (worldblocks[i].to_remove==true) //is already part of a square
-					continue;
-
-				var clr=worldblocks[i].type;
-				//if its a joker block, take the next normal color...
-				for(var y=0; y<side && clr>6; y++)
-					for(var x=0; x<side && clr>6; x++)
-						if (worldmatr[ix+x][iy+y] != null)
-							clr = worldmatr[ix+x][iy+y].type;
-
-				var square = true;
-
-				//look for a square growing from this block down and right
-				for(var y=0; y<side; y++) {
-					for(var x=0; x<side; x++) {
-						if (worldmatr[ix+x][iy+y]==null || worldmatr[ix+x][iy+y].to_remove==true
-								|| (worldmatr[ix+x][iy+y].type<=6 && clr<=6 && worldmatr[ix+x][iy+y].type != clr)) {
-							square = false;
-							break;
+			do {
+				//check every world block...
+				for(var i=0; i<worldblocks.length; i++) {
+					var ix=worldblocks[i].x;
+					var iy=worldblocks[i].y;
+	
+					//dont even look at the surrounding of that block if it doesn't meet the conditions
+					if (ix>fieldsz-sidex || iy>fieldsz-sidey) //cant be a square from here... out of game field
+						continue;
+					if (worldblocks[i].last_move_done==true) //that block was falling down... doesn't count
+						continue;
+					if (worldblocks[i].to_remove==true) //is already part of a square
+						continue;
+	
+					var clr=worldblocks[i].type;
+					//if its a joker block, take the next normal color...
+					for(var y=0; y<sidey && clr>6; y++)
+						for(var x=0; x<sidex && clr>6; x++)
+							if (worldmatr[ix+x][iy+y] != null)
+								clr = worldmatr[ix+x][iy+y].type;
+	
+					var isrect = true;
+	
+					//look for a square growing from this block down and right
+					for(var y=0; y<sidey; y++) {
+						for(var x=0; x<sidex; x++) {
+							if (worldmatr[ix+x][iy+y]==null || worldmatr[ix+x][iy+y].to_remove==true
+									|| (worldmatr[ix+x][iy+y].type<=6 && clr<=6 && worldmatr[ix+x][iy+y].type != clr)) {
+								isrect = false;
+								break;
+							}
 						}
+					}	
+	
+					if (isrect) {
+						//set blocks for removal
+						for(var y=0; y<sidey; y++)
+							for(var x=0; x<sidex; x++)
+								worldmatr[ix+x][iy+y].to_remove = true;
+						
+						//update score/stats + show message
+						blocksremoved += sidex*sidey;
+						var addscore = sidex*sidey * (sidex-2)*(sidey-2);
+						score += addscore;
+						var m = sidex > sidey ? sidex : sidey; //the bigger one of side x and side y
+						msgrenderer.push_msg((sidex.toString()+"x"+sidey.toString()+" Box! (+"+addscore.toString()+")"),20,colors[m-3],2+0.2*(m-3));
+	
+						//play sound
+						if (m == 3)
+							play_sound("sq3");
+						else if (m == 4)
+							play_sound("sq4");
+						else if (m >= 5)
+							play_sound("sq5");
 					}
-				}	
-
-				if (square) {
-					//set blocks for removal
-					for(var y=0; y<side; y++)
-						for(var x=0; x<side; x++) {
-							worldmatr[ix+x][iy+y].to_remove = true;
-						}
-					
-					//update score/stats + show message
-					blocksremoved += side*side;
-					var addscore = side*side * (side-2)*(side-2);
-					score += addscore;
-					msgrenderer.push_msg((side.toString()+"x"+side.toString()+" Square! (+"+addscore.toString()+")"),20,colors[side-3],2+0.2*(side-3));
-
-					//play sound
-					if (side == 3)
-						play_sound("sq3");
-					else if (side == 4)
-						play_sound("sq4");
-					else if (side >= 5)
-						play_sound("sq5");
 				}
-			}
+				//swap side x & side y, run again
+				reversecheck = !reversecheck;
+				var tmp = sidey;
+				sidey = sidex;
+				sidex = tmp;
+			} while (reversecheck)
 		}
 
 		remove_marked_blocks();
@@ -1073,12 +1087,11 @@ function sketch(p) {
 					play_sound("tetr_timeout");
 				}
 
-				chk_squares(); //check rows/squares -> remove, add score etc.
+				chk_rects(); //check rects -> remove, add score etc.
+				remove_old_special_blocks(); //remove blocks with duration which are too old
 				chk_gameover(); //check whether there are foreign blocks in spawn zone -> lose
 			}
 
-			remove_old_special_blocks(); //remove blocks with duration which are too old
-			chk_squares(); //check rows/squares -> remove, add score etc.
 			chk_gameover(); //check whether there are foreign blocks in spawn zone -> lose
 		} else {
 			if (!finished)
