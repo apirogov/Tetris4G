@@ -106,6 +106,11 @@ function sketch(p) {
 	//coordinates of preview rect
 	var previewx = 480+(640-480)/2-unitsz*2;
 	var previewy = 80;
+	//coordinates and properties of bias rect
+	var biasx = previewx;
+	var biasy = 180;
+	var biasw = unitsz*4;
+	var biash = unitsz;
 
 	// colors
 	var LBLUE = p.color(0, 255, 255);
@@ -156,6 +161,8 @@ function sketch(p) {
 	var loading = true; //bool that indicates whether the game is ready to play or not
 	var msgrenderer = null; //object that handles on screen text messages (init in setup)
 	var visrenderer = null; //object that handles effects of vanishing blocks
+	var biasrenderer = null; //object rendering the bias
+	var bias = null; //value of the bias
 	
 	var paused = false; //game is paused if set 'true'
 	var pause_frame = 0;
@@ -636,6 +643,23 @@ function sketch(p) {
 	
 	}
 	
+	function Bias() {
+		this.color = p.color(215, 10, 115);
+		var midx = (biasw-10)/2;
+		
+		this.render = function() {
+			p.stroke(this.color);
+			p.strokeWeight(2);
+			p.fill(80);
+			p.rect(biasx-2,biasy-2,biasw+4,biash+4);
+			p.stroke(BLACK);
+			//p.strokeWeight(0);
+			p.fill(BLUE);
+			p.rect( biasx+(biasw-10)/2+((biasw-10)/10/2)*bias, biasy, 10, biash); //10=bluebox´s width
+			p.line(biasx+(biasw/2), biasy, biasx+(biasw/2), biasy+biash);
+		}	
+	}
+	
 	// ******************** functions ********************
 	
 	//plays sound (s=id name without "sfx_" prefix)
@@ -1016,6 +1040,7 @@ function sketch(p) {
 		p.frameRate(fps);
 		msgrenderer = new MessageRenderer();
 		visrenderer = new VisualEffectRenderer();
+		biasrenderer = new Bias();
 
 		//load Font
 		txtfont = p.loadFont("./gfx/loveya.svg",30);
@@ -1048,6 +1073,8 @@ function sketch(p) {
 		key_force = (fieldsz/10);
 	
 		lock_direction = -1;
+		
+		bias = 0; //set bias to neutral
 	}
 
 	p.draw = function() {
@@ -1159,6 +1186,7 @@ function sketch(p) {
 
 		msgrenderer.render(); //render text messages
 		visrenderer.render(); //render visual effects
+		biasrenderer.render(); //render the bias scale
 	}
 
 	p.keyPressed = function() {
