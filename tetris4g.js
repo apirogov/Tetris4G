@@ -1168,8 +1168,7 @@ function sketch(p) {
 			p.fill(255);
 			p.text("Removed:",485,260);
 			p.fill(0);
-			//p.text(blocksremoved.toString(),585,260);
-			p.text("1234",585,260);
+			p.text(blocksremoved.toString(),585,260);
 			p.fill(255);
 			p.text("Score:",485,290);
 			p.fill(0);
