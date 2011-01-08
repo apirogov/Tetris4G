@@ -6,6 +6,16 @@ and assign special tasks to the player. The tasks have to be completed in a cert
 If the players succeeds, his "bias" scale moves in the positive, otherwise in the negative direction.
 Additionally, the player can earn "items" for completed missions that make the game easier.
 
+'mission': index of current mission and index for respective image in 'missionimg'
+
+'missionimg': array that includes images for missions:
+	'missionimg[0]': image for no mission
+	'missionimg[1]': image for mission 1
+	...
+	'missionimg[n]': image for mission n
+
+'missiongimg[mission]': image that is shown in the mission box
+
 The "bias scale"
 ==============================
 The bias scale shows the chance for bad or good special blocks.
