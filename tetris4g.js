@@ -1157,22 +1157,31 @@ function sketch(p) {
 			p.rect((spawnx-2)*unitsz,(spawny-2)*unitsz,4*unitsz,4*unitsz)
 
 			// render score and stuffz
-			p.textSize(20);
+			p.textSize(16);
 			p.textFont(txtfont);
 			if (!game_over && !paused) { //show rest time if game is running
 				p.fill(255);
-				p.text("Time:",520,250);
+				p.text("Time:",485,230);
 				p.fill(0);
-				p.text(p.int(((maxtetrtime_f-(p.frameCount-currtetr.spawnframe))/fps)).toString(),520,280);
+				p.text(p.int(((maxtetrtime_f-(p.frameCount-currtetr.spawnframe))/fps)).toString(),585,230);
 			}
 			p.fill(255);
-			p.text("Removed:",520,340);
+			p.text("Removed:",485,260);
 			p.fill(0);
-			p.text(blocksremoved.toString(),520,370);
+			//p.text(blocksremoved.toString(),585,260);
+			p.text("1234",585,260);
 			p.fill(255);
-			p.text("Score:",520,420);
+			p.text("Score:",485,290);
 			p.fill(0);
-			p.text(score.toString(),520,450);
+			p.text(score.toString(),585,290);
+			
+			// render mission and reward window
+			p.stroke(BLACK);
+			p.strokeWeight(3);
+			p.fill(100);
+			p.rect(485, 325, 150, 80);
+			p.rect(485, 415, 150, 50);
+			p.strokeWeight(1);
 			
 			//draw world & tetrominoes
 			for(var i=0; i<worldblocks.length; i++) {
