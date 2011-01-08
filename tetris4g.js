@@ -111,6 +111,15 @@ function sketch(p) {
 	var biasy = 180;
 	var biasw = unitsz*4;
 	var biash = unitsz;
+	//coordinates and properties of mission/reward windows
+	missionx = 485;
+	missiony = 325;
+	missionw = 150;
+	missionh = 80;
+	rewardx = missionx;
+	rewardy = 415;
+	rewardw = missionw;
+	rewardh = 50;
 
 	// colors
 	var LBLUE = p.color(0, 255, 255);
@@ -154,6 +163,7 @@ function sketch(p) {
 	
 	// required images+fonts (loaded in setup)
 	var backgroundimg = null;
+	var missionimg = null; //Array for mission images
 	var txtfont = null;
 
 	// global vars/objects
@@ -162,6 +172,7 @@ function sketch(p) {
 	var msgrenderer = null; //object that handles on screen text messages (init in setup)
 	var visrenderer = null; //object that handles effects of vanishing blocks
 	var bias = null; //object that handles the bias
+	var mission = 0; //index of current mission (0=no mission, 1=mission1, ...)
 	
 	var paused = false; //game is paused if set 'true'
 	var pause_frame = 0;
@@ -1041,6 +1052,7 @@ function sketch(p) {
 		msgrenderer = new MessageRenderer();
 		visrenderer = new VisualEffectRenderer();
 		bias = new Bias();
+		mission = 1; //set "no mission"
 
 		//load Font
 		txtfont = p.loadFont("./gfx/loveya.svg",30);
@@ -1049,6 +1061,9 @@ function sketch(p) {
 
 		//load GFX
 		backgroundimg = p.requestImage("./gfx/background.png");
+		missionimg = new Array();
+		missionimg.push(p.requestImage("./gfx/m0.png"));
+		missionimg.push(p.requestImage("./gfx/mtest.png"));
 
 		//start soundtrack if music is turned on
 		document.getElementById("sfx_soundtrack").volume=0.1; //not that loud...
@@ -1126,8 +1141,8 @@ function sketch(p) {
 		
 		/*************  rendering  *************/
 		if (!game_over && !paused) {
-			// game background
-			p.image(backgroundimg);
+			//images
+			p.image(backgroundimg); //game background
 
 			// Preview window
 			p.stroke(BLACK);
@@ -1149,7 +1164,6 @@ function sketch(p) {
 			p.line(gravln_right*unitsz+unitsz/2, 0, gravln_right*unitsz+unitsz/2, fieldszpx);
 			p.line(0, gravln_high*unitsz+unitsz/2, fieldszpx, gravln_high*unitsz+unitsz/2);
 			p.line(0, gravln_low*unitsz+unitsz/2, fieldszpx, gravln_low*unitsz+unitsz/2);
-			
 
 			// render spawn zone
 			p.noFill();
@@ -1178,9 +1192,10 @@ function sketch(p) {
 			p.stroke(BLACK);
 			p.strokeWeight(3);
 			p.fill(100);
-			p.rect(485, 325, 150, 80);
-			p.rect(485, 415, 150, 50);
+			p.rect(missionx, missiony, missionw, missionh);
+			p.rect(rewardx, rewardy, rewardw, rewardh);
 			p.strokeWeight(1);
+			p.image(missionimg[mission], missionx, missiony, missionw, missionh); //TODO coords as global vars
 			
 			//draw world & tetrominoes
 			for(var i=0; i<worldblocks.length; i++) {
