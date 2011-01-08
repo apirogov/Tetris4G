@@ -1,0 +1,14 @@
+Missions
+==============================
+Missions are a central aspect of Tetris4G.
+They appear randomly from time to time in the "missions" box on the right side
+and assign special tasks to the player. The tasks have to be completed in a certain time.
+If the players succeeds, his "bias" scale moves in the positive, otherwise in the negative direction.
+Additionally, the player can earn "items" for completed missions that make the game easier.
+
+The "bias scale"
+==============================
+The bias scale shows the chance for bad or good special blocks.
+A positive value means only good bonus blocks can spwan, a negative value means only bad bonus blocks.
+The higher the value the greater is the chance of the respective blocks.
+The value is influenced first by missions (s.o.) and second it decreases constantly over time.
