@@ -173,6 +173,7 @@ function sketch(p) {
 	var visrenderer = null; //object that handles effects of vanishing blocks
 	var bias = null; //object that handles the bias
 	var mission = 0; //index of current mission (0=no mission, 1=mission1, ...)
+	var missionmax = 1; //max index for missions (max value of 'missions', max index of 'missionimg[]')
 	
 	var paused = false; //game is paused if set 'true'
 	var pause_frame = 0;
@@ -1062,8 +1063,8 @@ function sketch(p) {
 		//load GFX
 		backgroundimg = p.requestImage("./gfx/background.png");
 		missionimg = new Array();
-		missionimg.push(p.requestImage("./gfx/m0.png"));
-		missionimg.push(p.requestImage("./gfx/mtest.png"));
+		for (var i = 0; i <= missionmax; i++)
+			missionimg.push(p.requestImage("./gfx/m" + i + ".png"));
 
 		//start soundtrack if music is turned on
 		document.getElementById("sfx_soundtrack").volume=0.1; //not that loud...

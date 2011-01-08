@@ -7,6 +7,7 @@ If the players succeeds, his "bias" scale moves in the positive, otherwise in th
 Additionally, the player can earn "items" for completed missions that make the game easier.
 
 'mission': index of current mission and index for respective image in 'missionimg'
+'missionmax': max index for missions (max value of 'missions', max index of 'missionimg[]')
 
 'missionimg': array that includes images for missions:
 	'missionimg[0]': image for no mission
