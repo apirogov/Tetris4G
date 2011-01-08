@@ -12,3 +12,5 @@ The bias scale shows the chance for bad or good special blocks.
 A positive value means only good bonus blocks can spwan, a negative value means only bad bonus blocks.
 The higher the value the greater is the chance of the respective blocks.
 The value is influenced first by missions (s.o.) and second it decreases constantly over time.
+
+'Bias.val': value of bias (val={-10...0...10}; n\R)
