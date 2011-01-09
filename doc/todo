@@ -1,4 +1,19 @@
+TODO LIST
+==============================
+
+----------
+  Anton
+----------
 
 - Find a way to implement those different special blocks
 	without the whole of the code becoming (more of) a mess
+
+
+----------
+  Felix
+----------
+
+- in 'p.draw()' -> 'if(loading){...}'
+	also recognize if images are really not available and keep the loading screen
+	with an info message then...
 
