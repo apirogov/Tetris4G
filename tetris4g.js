@@ -173,7 +173,7 @@ function sketch(p) {
 	var visrenderer = null; //object that handles effects of vanishing blocks
 	var bias = null; //object that handles the bias
 	var mission = 0; //index of current mission (0=no mission, 1=mission1, ...)
-	var missionmax = 1; //max index for missions (max value of 'missions', max index of 'missionimg[]')
+	var missionmax = 2; //max index for missions (max value of 'missions', max index of 'missionimg[]')
 	
 	var paused = false; //game is paused if set 'true'
 	var pause_frame = 0;
@@ -1053,7 +1053,7 @@ function sketch(p) {
 		msgrenderer = new MessageRenderer();
 		visrenderer = new VisualEffectRenderer();
 		bias = new Bias();
-		mission = 1; //set "no mission"
+		mission = 0; //set "no mission"
 
 		//load Font
 		txtfont = p.loadFont("./gfx/loveya.svg",30);
@@ -1098,9 +1098,28 @@ function sketch(p) {
 			p.fill(255);
 			p.textFont(p.loadFont("Courier New", 20));
 			p.text("Loading game data...",100,100);
-
+			
+			//check if images are loaded -- otherwise keep 'loading == true'
+			for (var i = 0; i <= missionmax; i++) {
+				if (missionimg == null || missionimg[i] == null) {
+					loading = true;
+					p.text("not all mission images are loaded...", 100, 140);
+					break;
+				}
+				else {
+					if (missionimg[i].width == 0)
+						p.text("not all mission images are loaded...", 100, 140);
+					else if (missionimg[i].width == -1)
+						p.text("error while loading mission images... all images available?)", 100, 140);
+				loading = true;
+				}
+			}
 			loading = false;
-			if (backgroundimg.width <= 0) {
+			if (backgroundimg == null) {
+				p.text("backgroundimg == null", 100, 120);
+				loading = true;
+			}
+			else if (backgroundimg.width <= 0) {
 				loading = true;
 				if (backgroundimg.width == -1)
 					p.text("Error while loading game data!",50,50);
@@ -1141,7 +1160,7 @@ function sketch(p) {
 
 		
 		/*************  rendering  *************/
-		if (!game_over && !paused) {
+		if (!game_over && !paused && !loading) {
 			//images
 			p.image(backgroundimg); //game background
 
