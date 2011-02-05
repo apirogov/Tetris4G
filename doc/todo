@@ -17,3 +17,10 @@ TODO LIST
 	also recognize if images are really not available and keep the loading screen
 	with an info message then...
 
+
+----------
+  General
+----------
+
+- sound if player presses an arrow key to 'lock_direction'
+
